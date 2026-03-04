@@ -20,19 +20,20 @@ public class TeacherTowerDefenseApp extends GameApplication {
         settings.setHeight(640);
         settings.setTitle("Teacher Tower Defense");
         settings.setVersion("0.1");
+
+        // Erlaubt das Vergrößern des Fensters
+        settings.setManualResizeEnabled(true);
+
+
     }
 
     @Override
     protected void initGame() {
-        // 2. Wir machen den Hintergrund hellgrau, das sieht freundlicher aus als schwarz
-        FXGL.getGameScene().setBackgroundColor(Color.LIGHTGREY);
+        // Der Tarn-Trick: Färbt den Hintergrund exakt in der Rasen-Farbe deines Tilesets
 
-        // 3. Wir bauen unseren ersten Lehrer (z.B. den Mathelehrer)
-        Entity mathTeacher = FXGL.entityBuilder()
-                .type(EntityType.TEACHER)           // Er ist vom Typ LEHRER
-                .at(400, 300)                       // Position: x=400, y=300 (Mitte)
-                .view(new Rectangle(40, 40, Color.BLUE)) // Aussehen: Ein 40x40 blaues Quadrat
-                .buildAndAttach();                  // Bauen und aufs Spielfeld setzen!
+
+        FXGL.getGameWorld().addEntityFactory(new TeacherTowerDefenseFactory());
+        FXGL.setLevelFromMap("Map1.tmx");
     }
 
     public static void main(String[] args) {
