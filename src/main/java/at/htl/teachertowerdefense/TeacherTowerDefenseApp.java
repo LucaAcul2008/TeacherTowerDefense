@@ -25,6 +25,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
         settings.setManualResizeEnabled(true);
 
 
+
+
     }
 
     @Override
