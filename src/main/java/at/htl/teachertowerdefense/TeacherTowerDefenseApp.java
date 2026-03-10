@@ -5,7 +5,7 @@ import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.dsl.components.HealthIntComponent;
 import com.almasb.fxgl.entity.Entity;
-import javafx.scene.input.MouseEvent;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -27,7 +27,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
         settings.setFullScreenAllowed(true);
         settings.setFullScreenFromStart(true);
         settings.setPreserveResizeRatio(true);
-
         settings.setDeveloperMenuEnabled(true);
     }
 
@@ -49,25 +48,21 @@ public class TeacherTowerDefenseApp extends GameApplication {
         }, Duration.seconds(1.5));
     }
 
-    // NEU: Die Physik! Was passiert bei Kollisionen?
     @Override
     protected void initPhysics() {
         FXGL.onCollisionBegin(EntityType.PROJEKTIL, EntityType.SCHUELER, (projektil, schueler) -> {
-            projektil.removeFromWorld(); // Das Projektil verschwindet
+            projektil.removeFromWorld();
 
-            // Ziehe dem Schüler 1 Leben ab
             HealthIntComponent hp = schueler.getComponent(HealthIntComponent.class);
             hp.damage(1);
 
-            // Ist der Schüler besiegt?
             if (hp.isZero()) {
-                FXGL.inc("geld", 5); // Belohnung: +5€
+                FXGL.inc("geld", 5);
                 schueler.removeFromWorld();
             }
-
         });
+
         FXGL.onCollisionBegin(EntityType.PROJEKTIL, EntityType.HINDERNIS, (projektil, hindernis) -> {
-            // Der Schwamm zerschellt am Baum oder fällt ins Wasser!
             projektil.removeFromWorld();
         });
     }
@@ -76,35 +71,47 @@ public class TeacherTowerDefenseApp extends GameApplication {
     protected void initUI() {
         // --- LINKE KOMMANDOZENTRALE ---
         Rectangle bgPanel = new Rectangle(200, 120, Color.color(0, 0, 0, 0.6));
-        bgPanel.setTranslateX(10); bgPanel.setTranslateY(10);
-        bgPanel.setArcWidth(15); bgPanel.setArcHeight(15);
+        bgPanel.setTranslateX(10);
+        bgPanel.setTranslateY(10);
+        bgPanel.setArcWidth(15);
+        bgPanel.setArcHeight(15);
 
         Text textLeben = new Text();
-        textLeben.setTranslateX(25); textLeben.setTranslateY(40);
-        textLeben.setFill(Color.RED); textLeben.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
+        textLeben.setTranslateX(25);
+        textLeben.setTranslateY(40);
+        textLeben.setFill(Color.RED);
+        textLeben.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
         textLeben.textProperty().bind(FXGL.getip("leben").asString("Leben: %d"));
 
         Text textGeld = new Text();
-        textGeld.setTranslateX(25); textGeld.setTranslateY(75);
-        textGeld.setFill(Color.GOLD); textGeld.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
+        textGeld.setTranslateX(25);
+        textGeld.setTranslateY(75);
+        textGeld.setFill(Color.GOLD);
+        textGeld.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
         textGeld.textProperty().bind(FXGL.getip("geld").asString("Geld: %d €"));
 
         Text textRunde = new Text();
-        textRunde.setTranslateX(25); textRunde.setTranslateY(110);
-        textRunde.setFill(Color.WHITE); textRunde.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
+        textRunde.setTranslateX(25);
+        textRunde.setTranslateY(110);
+        textRunde.setFill(Color.WHITE);
+        textRunde.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
         textRunde.textProperty().bind(FXGL.getip("runde").asString("Runde: %d / 40"));
 
         // --- RECHTER SHOP ---
         Rectangle shopPanel = new Rectangle(240, 640, Color.web("#2b2b2b"));
-        shopPanel.setTranslateX(960); shopPanel.setTranslateY(0);
+        shopPanel.setTranslateX(960);
+        shopPanel.setTranslateY(0);
 
         Text shopTitel = new Text("LEHRER SHOP");
-        shopTitel.setTranslateX(990); shopTitel.setTranslateY(40);
-        shopTitel.setFill(Color.WHITE); shopTitel.setStyle("-fx-font-size: 26px; -fx-font-weight: bold;");
+        shopTitel.setTranslateX(990);
+        shopTitel.setTranslateY(40);
+        shopTitel.setFill(Color.WHITE);
+        shopTitel.setStyle("-fx-font-size: 26px; -fx-font-weight: bold;");
 
         // --- DRAG & DROP LEHRER ---
         Rectangle shopIcon1 = new Rectangle(40, 40, Color.BLUE);
-        shopIcon1.setTranslateX(1060); shopIcon1.setTranslateY(100);
+        shopIcon1.setTranslateX(1060);
+        shopIcon1.setTranslateY(100);
 
         double startX = shopIcon1.getTranslateX();
         double startY = shopIcon1.getTranslateY();
@@ -112,7 +119,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
         // 1. ANKLICKEN
         shopIcon1.setOnMousePressed(e -> {
             if (FXGL.geti("geld") >= 20) {
-                // Wir spawnen jetzt den DUMMEN Schatten, nicht mehr den echten Lehrer!
                 lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100);
             }
         });
@@ -127,22 +133,12 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 double mouseY = FXGL.getInput().getMouseYWorld();
                 lehrerSchatten.setPosition(mouseX - 15, mouseY - 15);
 
-                boolean kollision = false;
+                boolean kollision = kollidiert(mouseX, mouseY) || mouseX >= 960;
 
-
-                for (Entity h : FXGL.getGameWorld().getEntitiesByType(EntityType.HINDERNIS)) {
-                    if (lehrerSchatten.isColliding(h)) { kollision = true; break; }
-                }
-
-
-                for (Entity anderer : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
-                    if (anderer.distance(lehrerSchatten) < 30) { kollision = true; break; }
-                }
-
-                Circle range = (Circle) lehrerSchatten.getViewComponent().getChildren().get(0);
+                Circle range  = (Circle)    lehrerSchatten.getViewComponent().getChildren().get(0);
                 Rectangle body = (Rectangle) lehrerSchatten.getViewComponent().getChildren().get(1);
 
-                if (kollision || mouseX >= 960) {
+                if (kollision) {
                     body.setFill(Color.color(1, 0, 0, 0.5));
                     range.setFill(Color.color(1, 0, 0, 0.2));
                     range.setStroke(Color.RED);
@@ -160,16 +156,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 double mouseX = FXGL.getInput().getMouseXWorld();
                 double mouseY = FXGL.getInput().getMouseYWorld();
 
-                boolean darfPlatzieren = true;
-                for (Entity h : FXGL.getGameWorld().getEntitiesByType(EntityType.HINDERNIS)) {
-                    if (lehrerSchatten.isColliding(h)) { darfPlatzieren = false; break; }
-                }
-                for (Entity anderer : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
-                    if (anderer.distance(lehrerSchatten) < 30) { darfPlatzieren = false; break; }
-                }
+                boolean darfPlatzieren = !kollidiert(mouseX, mouseY) && mouseX < 960;
 
-                if (darfPlatzieren && mouseX < 960) {
-                    // Erst JETZT spawnen wir den echten, schießenden Lehrer!
+                if (darfPlatzieren) {
                     FXGL.spawn("Lehrer1", mouseX - 15, mouseY - 15);
                     FXGL.inc("geld", -20);
                 }
@@ -177,11 +166,52 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 lehrerSchatten.removeFromWorld();
                 lehrerSchatten = null;
             }
+
             shopIcon1.setTranslateX(startX);
             shopIcon1.setTranslateY(startY);
         });
 
         FXGL.getGameScene().addUINodes(shopPanel, shopTitel, shopIcon1, bgPanel, textLeben, textGeld, textRunde);
+    }
+
+    /**
+     * Prüft manuell ob die Platzierung an Position (mouseX, mouseY) mit einem
+     * Hindernis oder einem anderen Lehrer kollidiert.
+     *
+     * Wir umgehen absichtlich das FXGL-Physics-System, weil die TMX-Polygone
+     * (Haus, Teich, Tent...) keine width/height-Attribute haben und ihre
+     * automatisch erzeugten Hitboxen deshalb unzuverlässig sind.
+     */
+    private boolean kollidiert(double mouseX, double mouseY) {
+        // Der Lehrer ist 30x30 Pixel groß, zentriert um den Mauszeiger
+        Rectangle2D lehrerBox = new Rectangle2D(mouseX - 15, mouseY - 15, 30, 30);
+
+        // Prüfe alle Hindernisse
+        for (Entity h : FXGL.getGameWorld().getEntitiesByType(EntityType.HINDERNIS)) {
+            // getMinXWorld/getMinYWorld liefert die echte Weltposition der BoundingBox
+            // inkl. des Offsets den wir in baueHindernis() gesetzt haben.
+            double hx = h.getBoundingBoxComponent().getMinXWorld();
+            double hy = h.getBoundingBoxComponent().getMinYWorld();
+            double hw = h.getWidth()  > 0 ? h.getWidth()  : 50;
+            double hh = h.getHeight() > 0 ? h.getHeight() : 50;
+
+            // Kleiner Puffer (+8px) damit man nicht ganz am Rand kleben kann
+            Rectangle2D hindernisBox = new Rectangle2D(hx - 4, hy - 4, hw + 8, hh + 8);
+
+            if (lehrerBox.intersects(hindernisBox)) {
+                return true;
+            }
+        }
+
+        // Prüfe bereits platzierte Lehrer (kein Überlappen erlaubt)
+        for (Entity anderer : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
+            double abstand = anderer.getCenter().distance(mouseX, mouseY);
+            if (abstand < 35) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static void main(String[] args) {
