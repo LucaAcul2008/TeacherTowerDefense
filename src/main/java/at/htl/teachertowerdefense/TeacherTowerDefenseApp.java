@@ -27,6 +27,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
         settings.setFullScreenAllowed(true);
         settings.setFullScreenFromStart(true);
         settings.setPreserveResizeRatio(true);
+
+        settings.setDeveloperMenuEnabled(true);
     }
 
     @Override
@@ -62,6 +64,11 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 FXGL.inc("geld", 5); // Belohnung: +5€
                 schueler.removeFromWorld();
             }
+
+        });
+        FXGL.onCollisionBegin(EntityType.PROJEKTIL, EntityType.HINDERNIS, (projektil, hindernis) -> {
+            // Der Schwamm zerschellt am Baum oder fällt ins Wasser!
+            projektil.removeFromWorld();
         });
     }
 
@@ -102,21 +109,15 @@ public class TeacherTowerDefenseApp extends GameApplication {
         double startX = shopIcon1.getTranslateX();
         double startY = shopIcon1.getTranslateY();
 
+        // 1. ANKLICKEN
         shopIcon1.setOnMousePressed(e -> {
-            // Check: Kostet 20€
             if (FXGL.geti("geld") >= 20) {
-                lehrerSchatten = FXGL.spawn("Lehrer1", -100, -100);
-                lehrerSchatten.setOpacity(0.5);
-
-                // NEU: Der Range-Kreis beim Ziehen!
-                Circle rangeCircle = new Circle(150, Color.color(1, 1, 1, 0.2));
-                rangeCircle.setStroke(Color.WHITE);
-                rangeCircle.setCenterX(15); // Zentriert auf den 30x30 Lehrer
-                rangeCircle.setCenterY(15);
-                lehrerSchatten.getViewComponent().addChild(rangeCircle);
+                // Wir spawnen jetzt den DUMMEN Schatten, nicht mehr den echten Lehrer!
+                lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100);
             }
         });
 
+        // 2. ZIEHEN
         shopIcon1.setOnMouseDragged(e -> {
             shopIcon1.setTranslateX(FXGL.getInput().getMouseXUI() - 20);
             shopIcon1.setTranslateY(FXGL.getInput().getMouseYUI() - 20);
@@ -127,22 +128,33 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 lehrerSchatten.setPosition(mouseX - 15, mouseY - 15);
 
                 boolean kollision = false;
+
+
                 for (Entity h : FXGL.getGameWorld().getEntitiesByType(EntityType.HINDERNIS)) {
                     if (lehrerSchatten.isColliding(h)) { kollision = true; break; }
                 }
 
+
+                for (Entity anderer : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
+                    if (anderer.distance(lehrerSchatten) < 30) { kollision = true; break; }
+                }
+
+                Circle range = (Circle) lehrerSchatten.getViewComponent().getChildren().get(0);
+                Rectangle body = (Rectangle) lehrerSchatten.getViewComponent().getChildren().get(1);
+
                 if (kollision || mouseX >= 960) {
-                    lehrerSchatten.getViewComponent().getChildren().stream()
-                            .filter(node -> node instanceof Rectangle)
-                            .forEach(node -> ((Rectangle) node).setFill(Color.color(1, 0, 0, 0.5)));
+                    body.setFill(Color.color(1, 0, 0, 0.5));
+                    range.setFill(Color.color(1, 0, 0, 0.2));
+                    range.setStroke(Color.RED);
                 } else {
-                    lehrerSchatten.getViewComponent().getChildren().stream()
-                            .filter(node -> node instanceof Rectangle)
-                            .forEach(node -> ((Rectangle) node).setFill(Color.color(0, 0, 1, 0.5)));
+                    body.setFill(Color.color(0, 0, 1, 0.5));
+                    range.setFill(Color.color(1, 1, 1, 0.2));
+                    range.setStroke(Color.WHITE);
                 }
             }
         });
 
+        // 3. LOSLASSEN
         shopIcon1.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mouseX = FXGL.getInput().getMouseXWorld();
@@ -152,8 +164,12 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 for (Entity h : FXGL.getGameWorld().getEntitiesByType(EntityType.HINDERNIS)) {
                     if (lehrerSchatten.isColliding(h)) { darfPlatzieren = false; break; }
                 }
+                for (Entity anderer : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
+                    if (anderer.distance(lehrerSchatten) < 30) { darfPlatzieren = false; break; }
+                }
 
                 if (darfPlatzieren && mouseX < 960) {
+                    // Erst JETZT spawnen wir den echten, schießenden Lehrer!
                     FXGL.spawn("Lehrer1", mouseX - 15, mouseY - 15);
                     FXGL.inc("geld", -20);
                 }
