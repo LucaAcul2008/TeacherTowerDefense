@@ -101,14 +101,29 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
     }
 
     // --- DIE ZUWEISUNGEN ---
-    @Spawns("Pfad")
-    public Entity newPfad(SpawnData data) { return baueHindernis(data); }
 
+    // Pfad (die Polyline der Schüler-Route) → kein Hindernis, wird ignoriert
+    @Spawns("Pfad")
+    public Entity newPfad(SpawnData data) {
+        return FXGL.entityBuilder(data)
+                .type(EntityType.PFAD)
+                .build();
+    }
+
+    // PfadAußen (dein Polygon) → blockiert Platzierung
     @Spawns("PfadAußen")
-    public Entity newPfadAußen (SpawnData data) { return baueHindernis(data); }
+    public Entity newPfadAussen(SpawnData data) {
+        Entity e = baueHindernis(data);
+        e.setProperty("usePip", true); // nur dieser benutzt Ray-Casting
+        return e;
+    }
 
     @Spawns("Teich")
-    public Entity newTeich(SpawnData data) { return baueHindernis(data); }
+    public Entity newTeich(SpawnData data) {
+        Entity e = baueHindernis(data);
+        e.setProperty("usePip", true); // nur dieser benutzt Ray-Casting
+        return e;
+    }
 
     @Spawns("Haus")
     public Entity newHaus(SpawnData data) { return baueHindernis(data); }
@@ -132,61 +147,60 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
     @Spawns("Spawn,Ziel,")
     public Entity newEmpty(SpawnData data) { return new Entity(); }
 
-    /**
-     * Berechnet aus einer Liste von X/Y-Koordinaten (flach: x0,y0,x1,y1,...)
-     * die umschließende Bounding Box und gibt [minX, minY, width, height] zurück.
-     */
+    // --- HILFSMETHODEN ---
+
     private double[] berechneBBox(List<Double> coords) {
         double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE;
         double maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
-
         for (int i = 0; i + 1 < coords.size(); i += 2) {
-            double px = coords.get(i);
-            double py = coords.get(i + 1);
+            double px = coords.get(i), py = coords.get(i + 1);
             if (px < minX) minX = px;
             if (py < minY) minY = py;
             if (px > maxX) maxX = px;
             if (py > maxY) maxY = py;
         }
-
         return new double[]{ minX, minY, maxX - minX, maxY - minY };
     }
 
     /**
-     * Baut eine Hindernis-Entity mit korrekter Bounding Box:
-     * - Polygon  → FXGL liefert javafx.scene.shape.Polygon
-     * - Polyline → FXGL liefert javafx.scene.shape.Polyline
-     * - Rechteck → width/height direkt aus TMX (Baum, Busch)
+     * Baut eine Hindernis-Entity.
+     * Polygon/Polyline → Punkte werden als "polygonPunkte"-Property gespeichert
+     *                    damit kollidiert() in der App einen echten Punkt-in-Polygon-Test machen kann.
+     * Rechteck (Baum, Busch) → normale Box.
      */
     private Entity baueHindernis(SpawnData data) {
         double offsetX = 0, offsetY = 0, w, h;
+        List<Double> polygonPunkte = null;
 
         if (data.hasKey("polygon")) {
             Polygon polygon = data.get("polygon");
-            double[] bbox = berechneBBox(polygon.getPoints());
-            offsetX = bbox[0];
-            offsetY = bbox[1];
-            w = bbox[2];
-            h = bbox[3];
+            polygonPunkte = new ArrayList<>(polygon.getPoints());
+            double[] bbox = berechneBBox(polygonPunkte);
+            offsetX = bbox[0]; offsetY = bbox[1]; w = bbox[2]; h = bbox[3];
 
         } else if (data.hasKey("polyline")) {
             Polyline polyline = data.get("polyline");
-            double[] bbox = berechneBBox(polyline.getPoints());
-            offsetX = bbox[0];
-            offsetY = bbox[1];
-            w = bbox[2];
-            h = bbox[3];
+            polygonPunkte = new ArrayList<>(polyline.getPoints());
+            double[] bbox = berechneBBox(polygonPunkte);
+            offsetX = bbox[0]; offsetY = bbox[1]; w = bbox[2]; h = bbox[3];
 
         } else {
-            // Normales Rechteck (Baum, Busch)
             w = data.hasKey("width")  ? Double.parseDouble(data.get("width").toString())  : 50;
             h = data.hasKey("height") ? Double.parseDouble(data.get("height").toString()) : 50;
         }
 
-        return FXGL.entityBuilder(data)
+        Entity e = FXGL.entityBuilder(data)
                 .type(EntityType.HINDERNIS)
                 .bbox(new HitBox(new Point2D(offsetX, offsetY), BoundingShape.box(w, h)))
                 .collidable()
                 .build();
+
+        // Polygon-Punkte als Property speichern → für Ray-Casting in kollidiert()
+        // Die Punkte sind relativ zur Entity-Position (data.getX(), data.getY())
+        if (polygonPunkte != null) {
+            e.setProperty("polygonPunkte", polygonPunkte);
+        }
+
+        return e;
     }
 }
