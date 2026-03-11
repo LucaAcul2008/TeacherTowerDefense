@@ -5,35 +5,34 @@ import com.almasb.fxgl.entity.component.Component;
 import java.util.List;
 
 /**
- * Verwaltet den Upgrade-Zustand eines Lehrers.
+ * Verwaltet Upgrade-Zustand eines Lehrers.
  *
- * BTD6-Regel:
- *   - Max 5 Upgrades auf einem Pfad, max 2 auf dem anderen
- *   - Sobald ein Pfad Stufe 3+ erreicht, ist der andere auf max 2 begrenzt
- *   - Niemals beide Pfade auf 3+ gleichzeitig
+ * BTD6 5-2-0 Regel (3 Pfade):
+ *   - Nur EIN Pfad darf auf 3+ gehen (wird dann zum "Hauptpfad")
+ *   - Die anderen beiden Pfade dürfen maximal auf Stufe 2
+ *   - Sobald Hauptpfad bestimmt ist, kann kein anderer mehr Hauptpfad werden
  */
 public class LehrerComponent extends Component {
 
-    // Aktuelle Upgrade-Stufen (0 = kein Upgrade)
     private int stufePfadA = 0;
     private int stufePfadB = 0;
+    private int stufePfadC = 0;
 
-    // Aktuelle Stats (werden beim Upgrade angepasst)
-    private double range;
-    private double shootDelay;
-    private int    damage;
-    private int    multiTarget;
+    private double  range;
+    private double  shootDelay;
+    private int     damage;
+    private int     multiTarget;
     private boolean spezialProjektil;
 
-    // Upgrade-Definitionen
     private final List<LehrerUpgrade> pfadA;
     private final List<LehrerUpgrade> pfadB;
+    private final List<LehrerUpgrade> pfadC;
 
     public LehrerComponent() {
         this.pfadA = LehrerUpgradePfade.LEHRER1_PFAD_A;
         this.pfadB = LehrerUpgradePfade.LEHRER1_PFAD_B;
+        this.pfadC = LehrerUpgradePfade.LEHRER1_PFAD_C;
 
-        // Basis-Stats
         this.range            = LehrerUpgradePfade.BASE_RANGE;
         this.shootDelay       = LehrerUpgradePfade.BASE_SHOOT_DELAY;
         this.damage           = LehrerUpgradePfade.BASE_DAMAGE;
@@ -42,92 +41,107 @@ public class LehrerComponent extends Component {
     }
 
     // ============================================================
-    // UPGRADE-LOGIK
+    // BTD6 5-2-0 REGEL
     // ============================================================
 
-    /** Gibt zurück ob Pfad A auf die nächste Stufe upgegraded werden kann. */
+    /** Wie viele Pfade haben mindestens 1 Upgrade? */
+    private int pfadeMitUpgrades() {
+        int count = 0;
+        if (stufePfadA > 0) count++;
+        if (stufePfadB > 0) count++;
+        if (stufePfadC > 0) count++;
+        return count;
+    }
+
+    /** Welcher Pfad ist der Hauptpfad (Stufe 3+)? -1 = noch keiner */
+    private int hauptPfad() {
+        if (stufePfadA >= 3) return 0;
+        if (stufePfadB >= 3) return 1;
+        if (stufePfadC >= 3) return 2;
+        return -1;
+    }
+
     public boolean kannUpgradeA() {
         if (stufePfadA >= 5) return false;
-        // BTD6-Regel: wenn B schon auf 3+, darf A max auf 2
-        if (stufePfadB >= 3 && stufePfadA >= 2) return false;
+        int hp = hauptPfad();
+        // Wenn ein anderer Pfad Hauptpfad ist, darf A max auf 2
+        if (hp != -1 && hp != 0 && stufePfadA >= 2) return false;
+        // 5-2-0 Regel: wenn A noch 0 hat, aber schon 2 andere Pfade Upgrades haben → gesperrt
+        if (stufePfadA == 0 && pfadeMitUpgrades() >= 2) return false;
         return true;
     }
 
-    /** Gibt zurück ob Pfad B auf die nächste Stufe upgegraded werden kann. */
     public boolean kannUpgradeB() {
         if (stufePfadB >= 5) return false;
-        // BTD6-Regel: wenn A schon auf 3+, darf B max auf 2
-        if (stufePfadA >= 3 && stufePfadB >= 2) return false;
+        int hp = hauptPfad();
+        if (hp != -1 && hp != 1 && stufePfadB >= 2) return false;
+        if (stufePfadB == 0 && pfadeMitUpgrades() >= 2) return false;
         return true;
     }
 
-    /** Führt das nächste Upgrade auf Pfad A durch (Kosten bereits geprüft). */
+    public boolean kannUpgradeC() {
+        if (stufePfadC >= 5) return false;
+        int hp = hauptPfad();
+        if (hp != -1 && hp != 2 && stufePfadC >= 2) return false;
+        if (stufePfadC == 0 && pfadeMitUpgrades() >= 2) return false;
+        return true;
+    }
+
+    // ============================================================
+    // UPGRADE DURCHFÜHREN
+    // ============================================================
+
     public void upgradeA() {
         if (!kannUpgradeA()) return;
-        LehrerUpgrade u = pfadA.get(stufePfadA);
-        wendeAnUpgrade(u);
+        wendeAnUpgrade(pfadA.get(stufePfadA));
         stufePfadA++;
     }
 
-    /** Führt das nächste Upgrade auf Pfad B durch (Kosten bereits geprüft). */
     public void upgradeB() {
         if (!kannUpgradeB()) return;
-        LehrerUpgrade u = pfadB.get(stufePfadB);
-        wendeAnUpgrade(u);
+        wendeAnUpgrade(pfadB.get(stufePfadB));
         stufePfadB++;
     }
 
-    private void wendeAnUpgrade(LehrerUpgrade u) {
-        range            += u.rangeDelta;
-        shootDelay       += u.shootDelayDelta;
-        damage           += u.damageDelta;
-        multiTarget      += u.multiTargetDelta;
-        if (u.spezialProjektil) spezialProjektil = true;
+    public void upgradeC() {
+        if (!kannUpgradeC()) return;
+        wendeAnUpgrade(pfadC.get(stufePfadC));
+        stufePfadC++;
+    }
 
-        // Minimum-Grenze für shootDelay
+    private void wendeAnUpgrade(LehrerUpgrade u) {
+        range       += u.rangeDelta;
+        shootDelay  += u.shootDelayDelta;
+        damage      += u.damageDelta;
+        multiTarget += u.multiTargetDelta;
+        if (u.spezialProjektil) spezialProjektil = true;
         if (shootDelay < 0.1) shootDelay = 0.1;
     }
 
     // ============================================================
-    // KOSTEN-ABFRAGEN
+    // KOSTEN & NAMEN
     // ============================================================
 
-    /** Kosten des nächsten Upgrades auf Pfad A, -1 wenn nicht verfügbar. */
-    public int kostenNaechstesUpgradeA() {
-        if (!kannUpgradeA()) return -1;
-        return pfadA.get(stufePfadA).kosten;
-    }
+    public int    kostenA() { return !kannUpgradeA() || stufePfadA >= pfadA.size() ? -1 : pfadA.get(stufePfadA).kosten; }
+    public int    kostenB() { return !kannUpgradeB() || stufePfadB >= pfadB.size() ? -1 : pfadB.get(stufePfadB).kosten; }
+    public int    kostenC() { return !kannUpgradeC() || stufePfadC >= pfadC.size() ? -1 : pfadC.get(stufePfadC).kosten; }
 
-    /** Kosten des nächsten Upgrades auf Pfad B, -1 wenn nicht verfügbar. */
-    public int kostenNaechstesUpgradeB() {
-        if (!kannUpgradeB()) return -1;
-        return pfadB.get(stufePfadB).kosten;
-    }
-
-    /** Name des nächsten Upgrades auf Pfad A. */
-    public String nameNaechstesUpgradeA() {
-        if (stufePfadA >= pfadA.size()) return "MAX";
-        return pfadA.get(stufePfadA).name;
-    }
-
-    /** Name des nächsten Upgrades auf Pfad B. */
-    public String nameNaechstesUpgradeB() {
-        if (stufePfadB >= pfadB.size()) return "MAX";
-        return pfadB.get(stufePfadB).name;
-    }
+    public String nameA()   { return stufePfadA >= pfadA.size() ? "MAX" : pfadA.get(stufePfadA).name; }
+    public String nameB()   { return stufePfadB >= pfadB.size() ? "MAX" : pfadB.get(stufePfadB).name; }
+    public String nameC()   { return stufePfadC >= pfadC.size() ? "MAX" : pfadC.get(stufePfadC).name; }
 
     // ============================================================
     // GETTERS
     // ============================================================
 
-    public double  getRange()            { return range; }
-    public double  getShootDelay()       { return shootDelay; }
-    public int     getDamage()           { return damage; }
-    public int     getMultiTarget()      { return multiTarget; }
-    public boolean isSpezialProjektil()  { return spezialProjektil; }
-    public int     getStufePfadA()       { return stufePfadA; }
-    public int     getStufePfadB()       { return stufePfadB; }
+    public double  getRange()           { return range; }
+    public double  getShootDelay()      { return shootDelay; }
+    public int     getDamage()          { return damage; }
+    public int     getMultiTarget()     { return multiTarget; }
+    public boolean isSpezialProjektil() { return spezialProjektil; }
+    public int     getStufePfadA()      { return stufePfadA; }
+    public int     getStufePfadB()      { return stufePfadB; }
+    public int     getStufePfadC()      { return stufePfadC; }
 
-    /** Gibt den Upgrade-Zustand als String zurück z.B. "2-1" */
-    public String getUpgradeStatus() { return stufePfadA + "-" + stufePfadB; }
+    public String getUpgradeStatus()    { return stufePfadA + "-" + stufePfadB + "-" + stufePfadC; }
 }

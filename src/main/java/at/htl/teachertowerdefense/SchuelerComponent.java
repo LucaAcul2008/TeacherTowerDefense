@@ -7,17 +7,16 @@ import javafx.util.Duration;
 
 /**
  * Verwaltet HP und spawnt beim Tod die richtigen Kinder.
+ * Überschuss-Schaden (Overkill) wird an alle Kinder weitergegeben.
  *
- * WICHTIG: removeFromWorld() wird NICHT direkt im Collision-Callback aufgerufen,
- * sondern mit runOnceAfter(Duration.ZERO) auf den nächsten Frame verschoben.
- * Sonst kann FXGL während der Kollisionsverarbeitung abstürzen und
- * weitere Kollisionen (und damit das Schießen) blockieren.
+ * Beispiel: Schüler hat 1 HP, Turm macht 3 Damage → 2 Overkill-Damage
+ * → Kinder werden mit damage(2) getroffen sobald sie spawnen.
  */
 public class SchuelerComponent extends Component {
 
     private final SchuelerTyp typ;
     private int hp;
-    private boolean sterbend = false; // verhindert doppeltes Sterben
+    private boolean sterbend = false;
 
     public SchuelerComponent(SchuelerTyp typ) {
         this.typ = typ;
@@ -25,35 +24,40 @@ public class SchuelerComponent extends Component {
     }
 
     public void damage(int amount) {
-        if (sterbend) return; // schon am Sterben, ignorieren
+        if (sterbend) return;
         hp -= amount;
         if (hp <= 0) {
             sterbend = true;
-            sterben();
+            // Überschuss-Schaden = wie viel "über 0" wir gegangen sind
+            int overkill = Math.abs(hp); // hp ist negativ oder 0
+            sterben(overkill);
         }
     }
 
-    private void sterben() {
-        // Belohnung sofort auszahlen
+    private void sterben(int overkillDamage) {
         FXGL.inc("geld", typ.belohnung);
 
-        // Position merken BEVOR die Entity entfernt wird
-        final double x = entity.getX() + typ.groesse / 2.0;
-        final double y = entity.getY() + typ.groesse / 2.0;
-        final int naechsterIndex = WaypointData.naechsterWaypointIndex(x, y);
+        final double x            = entity.getX() + typ.groesse / 2.0;
+        final double y            = entity.getY() + typ.groesse / 2.0;
+        final int naechsterIndex  = WaypointData.naechsterWaypointIndex(x, y);
+        final int overkill        = overkillDamage;
 
-        // Auf nächsten Frame verschieben → sicher außerhalb des Collision-Callbacks
         FXGL.getGameTimer().runOnceAfter(() -> {
-            if (!entity.isActive()) return; // Sicherheitscheck
+            if (!entity.isActive()) return;
 
-            // Kinder spawnen
             if (typ.kindTyp != null) {
                 for (int i = 0; i < typ.kindAnzahl; i++) {
-                    FXGL.spawn("Schueler",
+                    // Kind spawnen
+                    var kindEntity = FXGL.spawn("Schueler",
                             new SpawnData(x, y)
                                     .put("typ", typ.kindTyp)
                                     .put("startWaypoint", naechsterIndex)
                     );
+
+                    // Overkill-Schaden ans Kind weitergeben (falls > 0)
+                    if (overkill > 0) {
+                        kindEntity.getComponent(SchuelerComponent.class).damage(overkill);
+                    }
                 }
             }
 
@@ -64,4 +68,5 @@ public class SchuelerComponent extends Component {
 
     public SchuelerTyp getTyp() { return typ; }
     public int getHp()          { return hp; }
+    public int getMaxHp()       { return typ.maxHp; }
 }

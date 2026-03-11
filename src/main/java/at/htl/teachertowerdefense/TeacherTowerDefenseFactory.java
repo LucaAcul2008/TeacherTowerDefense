@@ -1,7 +1,6 @@
 package at.htl.teachertowerdefense;
 
 import com.almasb.fxgl.dsl.FXGL;
-import com.almasb.fxgl.dsl.components.HealthIntComponent;
 import com.almasb.fxgl.dsl.components.WaypointMoveComponent;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.EntityFactory;
@@ -23,40 +22,24 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
     @Spawns("Schueler")
     public Entity newSchueler(SpawnData data) {
-        List<Point2D> wegpunkte = List.of(
-                new Point2D(2.67, 519.33), new Point2D(60.00, 518.67), new Point2D(88.00, 501.33),
-                new Point2D(200.67, 501.33), new Point2D(228.00, 488.00), new Point2D(350.00, 485.33),
-                new Point2D(376.00, 474.67), new Point2D(412.00, 472.00), new Point2D(437.33, 472.00),
-                new Point2D(450.00, 455.33), new Point2D(454.67, 438.67), new Point2D(455.33, 418.00),
-                new Point2D(456.00, 334.67), new Point2D(461.33, 327.33), new Point2D(474.00, 320.67),
-                new Point2D(488.00, 312.67), new Point2D(550.00, 310.67), new Point2D(622.67, 310.00),
-                new Point2D(631.33, 300.67), new Point2D(641.33, 293.33), new Point2D(661.33, 291.33),
-                new Point2D(687.33, 289.33), new Point2D(715.33, 289.33), new Point2D(733.33, 291.33),
-                new Point2D(748.00, 291.33), new Point2D(768.00, 294.67), new Point2D(796.67, 310.67),
-                new Point2D(880.67, 310.00), new Point2D(902.00, 326.00), new Point2D(951.33, 325.33),
-                new Point2D(960.00, 325.33)
-        );
+        SchuelerTyp typ  = data.hasKey("typ")           ? data.get("typ")                : SchuelerTyp.TYP1;
+        int startIndex   = data.hasKey("startWaypoint") ? (int) data.get("startWaypoint"): 0;
 
-        List<Point2D> finaleRoute = new ArrayList<>();
-        for (Point2D p : wegpunkte) { finaleRoute.add(p.subtract(10, 10)); }
+        List<Point2D> route = WaypointData.routeAbIndex(startIndex);
+        int g = typ.groesse;
 
         Entity schueler = FXGL.entityBuilder(data)
                 .type(EntityType.SCHUELER)
-                .at(finaleRoute.get(0))
-                .viewWithBBox(new Rectangle(20, 20, Color.RED))
+                .viewWithBBox(new Rectangle(g, g, typ.farbe))
                 .collidable()
-                .with(new HealthIntComponent(3))
+                .with(new SchuelerComponent(typ))
                 .zIndex(100)
                 .build();
 
-        WaypointMoveComponent navi = new WaypointMoveComponent(100, finaleRoute);
+        WaypointMoveComponent navi = new WaypointMoveComponent(typ.speed, route);
         navi.atDestinationProperty().addListener((obs, old, arrived) -> {
-            if (arrived) {
-                FXGL.inc("leben", -1);
-                schueler.removeFromWorld();
-            }
+            if (arrived) { FXGL.inc("leben", -1); schueler.removeFromWorld(); }
         });
-
         schueler.addComponent(navi);
         return schueler;
     }
@@ -66,6 +49,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
         return FXGL.entityBuilder(data)
                 .type(EntityType.LEHRER)
                 .viewWithBBox(new Rectangle(30, 30, Color.BLUE))
+                .with(new LehrerComponent())
                 .with(new TowerComponent(150, 1.0))
                 .zIndex(10)
                 .build();
@@ -77,9 +61,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
         rangeCircle.setStroke(Color.WHITE);
         rangeCircle.setCenterX(15);
         rangeCircle.setCenterY(15);
-
         Rectangle body = new Rectangle(30, 30, Color.color(0, 0, 1, 0.5));
-
         return FXGL.entityBuilder(data)
                 .view(rangeCircle)
                 .viewWithBBox(body)
@@ -89,101 +71,89 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
     @Spawns("Projektil")
     public Entity newProjektil(SpawnData data) {
-        Entity target = data.get("target");
-
+        Entity target   = data.get("target");
+        boolean spezial = data.hasKey("spezial") && (boolean) data.get("spezial");
+        Color farbe     = spezial ? Color.CYAN : Color.YELLOW;
         return FXGL.entityBuilder(data)
                 .type(EntityType.PROJEKTIL)
-                .viewWithBBox(new Circle(5, Color.YELLOW))
+                .viewWithBBox(new Circle(spezial ? 8 : 5, farbe))
                 .collidable()
                 .with(new HomingComponent(target, 400))
                 .zIndex(150)
                 .build();
     }
 
-    // --- DIE ZUWEISUNGEN ---
-
-    // Pfad (die Polyline der Schüler-Route) → kein Hindernis, wird ignoriert
-    @Spawns("Pfad")
-    public Entity newPfad(SpawnData data) {
+    @Spawns("RangeIndicator")
+    public Entity newRangeIndicator(SpawnData data) {
+        double range = data.get("range");
+        Circle c = new Circle(range, Color.color(1, 1, 0, 0.15));
+        c.setStroke(Color.color(1, 1, 0, 0.6));
+        c.setStrokeWidth(2);
+        // FIX: Circle center auf (0,0) → Entity-Position ist der Mittelpunkt
+        c.setCenterX(0);
+        c.setCenterY(0);
         return FXGL.entityBuilder(data)
-                .type(EntityType.PFAD)
+                .view(c)
+                .zIndex(5)
                 .build();
     }
 
-    // PfadAußen (dein Polygon) → blockiert Platzierung
+    @Spawns("Pfad")
+    public Entity newPfad(SpawnData data) {
+        return FXGL.entityBuilder(data).type(EntityType.PFAD).build();
+    }
+
     @Spawns("PfadAussen")
     public Entity newPfadAussen(SpawnData data) {
         Entity e = baueHindernis(data);
-        e.setProperty("usePip", true); // nur dieser benutzt Ray-Casting
+        e.setProperty("usePip", true);
+        e.setProperty("blockiertSchuss", false); // ← FIX: Projektile fliegen über PfadAussen
         return e;
     }
 
-    @Spawns("Teich")
-    public Entity newTeich(SpawnData data) {
-        Entity e = baueHindernis(data);
-        e.setProperty("usePip", true); // nur dieser benutzt Ray-Casting
-        return e;
-    }
+    @Spawns("Teich")          public Entity newTeich(SpawnData d)          { return baueHindernisOhneSchuss(d); }
+    @Spawns("Haus")           public Entity newHaus(SpawnData d)           { return baueHindernis(d); }
+    @Spawns("KleinHaus")      public Entity newKleinHaus(SpawnData d)      { return baueHindernis(d); }
+    @Spawns("KleinHausEimer") public Entity newKleinHausEimer(SpawnData d) { return baueHindernis(d); }
+    @Spawns("Tent")           public Entity newTent(SpawnData d)           { return baueHindernis(d); }
+    @Spawns("Baum")           public Entity newBaum(SpawnData d)           { return baueHindernis(d); }
+    @Spawns("Busch")          public Entity newBusch(SpawnData d)          { return baueHindernis(d); }
 
-    @Spawns("Haus")
-    public Entity newHaus(SpawnData data) { return baueHindernis(data); }
-
-    @Spawns("KleinHaus")
-    public Entity newKleinHaus(SpawnData data) { return baueHindernis(data); }
-
-    @Spawns("KleinHausEimer")
-    public Entity newKleinHausEimer(SpawnData data) { return baueHindernis(data); }
-
-    @Spawns("Tent")
-    public Entity newTent(SpawnData data) { return baueHindernis(data); }
-
-    @Spawns("Baum")
-    public Entity newBaum(SpawnData data) { return baueHindernis(data); }
-
-    @Spawns("Busch")
-    public Entity newBusch(SpawnData data) { return baueHindernis(data); }
-
-    // --- LOGIK ---
     @Spawns("Spawn,Ziel,")
     public Entity newEmpty(SpawnData data) { return new Entity(); }
 
-    // --- HILFSMETHODEN ---
+    // ============================================================
+    // HILFSMETHODEN
+    // ============================================================
 
-    private double[] berechneBBox(List<Double> coords) {
-        double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE;
-        double maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
-        for (int i = 0; i + 1 < coords.size(); i += 2) {
-            double px = coords.get(i), py = coords.get(i + 1);
-            if (px < minX) minX = px;
-            if (py < minY) minY = py;
-            if (px > maxX) maxX = px;
-            if (py > maxY) maxY = py;
-        }
-        return new double[]{ minX, minY, maxX - minX, maxY - minY };
+    /** Hindernis das Lehrer-Platzierung UND Schüsse blockiert */
+    private Entity baueHindernis(SpawnData data) {
+        Entity e = baueHindernisBase(data);
+        e.setProperty("blockiertSchuss", true);
+        return e;
     }
 
-    /**
-     * Baut eine Hindernis-Entity.
-     * Polygon/Polyline → Punkte werden als "polygonPunkte"-Property gespeichert
-     *                    damit kollidiert() in der App einen echten Punkt-in-Polygon-Test machen kann.
-     * Rechteck (Baum, Busch) → normale Box.
-     */
-    private Entity baueHindernis(SpawnData data) {
+    /** Hindernis das Lehrer-Platzierung blockiert aber Schüsse NICHT (z.B. Teich) */
+    private Entity baueHindernisOhneSchuss(SpawnData data) {
+        Entity e = baueHindernisBase(data);
+        e.setProperty("blockiertSchuss", false);
+        return e;
+    }
+
+    private Entity baueHindernisBase(SpawnData data) {
         double offsetX = 0, offsetY = 0, w, h;
         List<Double> polygonPunkte = null;
 
         if (data.hasKey("polygon")) {
-            Polygon polygon = data.get("polygon");
-            polygonPunkte = new ArrayList<>(polygon.getPoints());
+            Polygon p = data.get("polygon");
+            polygonPunkte = new ArrayList<>(p.getPoints());
             double[] bbox = berechneBBox(polygonPunkte);
             offsetX = bbox[0]; offsetY = bbox[1]; w = bbox[2]; h = bbox[3];
-
         } else if (data.hasKey("polyline")) {
-            Polyline polyline = data.get("polyline");
-            polygonPunkte = new ArrayList<>(polyline.getPoints());
+            Polyline pl = data.get("polyline");
+            polygonPunkte = new ArrayList<>(pl.getPoints());
             double[] bbox = berechneBBox(polygonPunkte);
             offsetX = bbox[0]; offsetY = bbox[1]; w = bbox[2]; h = bbox[3];
-
         } else {
             w = data.hasKey("width")  ? Double.parseDouble(data.get("width").toString())  : 50;
             h = data.hasKey("height") ? Double.parseDouble(data.get("height").toString()) : 50;
@@ -195,12 +165,18 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
                 .collidable()
                 .build();
 
-        // Polygon-Punkte als Property speichern → für Ray-Casting in kollidiert()
-        // Die Punkte sind relativ zur Entity-Position (data.getX(), data.getY())
-        if (polygonPunkte != null) {
-            e.setProperty("polygonPunkte", polygonPunkte);
-        }
-
+        if (polygonPunkte != null) e.setProperty("polygonPunkte", polygonPunkte);
         return e;
+    }
+
+    private double[] berechneBBox(List<Double> coords) {
+        double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE;
+        double maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
+        for (int i = 0; i+1 < coords.size(); i += 2) {
+            double px = coords.get(i), py = coords.get(i+1);
+            if (px < minX) minX = px; if (py < minY) minY = py;
+            if (px > maxX) maxX = px; if (py > maxY) maxY = py;
+        }
+        return new double[]{ minX, minY, maxX-minX, maxY-minY };
     }
 }
