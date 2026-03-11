@@ -111,7 +111,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
     }
 
     // PfadAußen (dein Polygon) → blockiert Platzierung
-    @Spawns("PfadAußen")
+    @Spawns("PfadAussen")
     public Entity newPfadAussen(SpawnData data) {
         Entity e = baueHindernis(data);
         e.setProperty("usePip", true); // nur dieser benutzt Ray-Casting
