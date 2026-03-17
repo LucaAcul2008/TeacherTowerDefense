@@ -5,18 +5,18 @@ import javafx.scene.paint.Color;
 public enum SchuelerTyp {
 
     // --- KLEIN (20x20, speed 100) ---
-    TYP1("Erstklässler",    1, 20, 100, Color.RED,                  null,  0, 5),
-    TYP2("Zweitklässler",   2, 20, 100, Color.BLUE,                 TYP1,  1, 8),
-    TYP3("Drittklässler",   3, 20, 100, Color.GREEN,                TYP2,  1, 10),
-    TYP4("Viertklässler",   4, 20, 100, Color.YELLOW,               TYP3,  1, 12),
+    TYP1("Erstklässler",    1, 48, 100, Color.RED,                  null,  0, 5),
+    TYP2("Zweitklässler",   2, 48, 100, Color.BLUE,                 TYP1,  1, 8),
+    TYP3("Drittklässler",   3, 48, 100, Color.GREEN,                TYP2,  1, 10),
+    TYP4("Viertklässler",   4, 48, 100, Color.YELLOW,               TYP3,  1, 12),
 
-    // --- MITTEL (30x30, speed 70) ---
-    TYP5("Fünftklässler",   5, 30,  70, Color.ORANGE,               TYP4,  2, 20),
-    TYP6("Sechstklässler",  6, 30,  70, Color.PURPLE,               TYP5,  2, 30),
+    // --- MITTEL (60px, speed 70) ---
+    TYP5("Fünftklässler",   5, 60,  70, Color.ORANGE,               TYP4,  2, 20),
+    TYP6("Sechstklässler",  6, 60,  70, Color.PURPLE,               TYP5,  2, 30),
 
-    // --- GROSS (45x45, speed 50) ---
-    TYP7("Maturant",        8, 45,  50, Color.DARKGRAY,             TYP5,  4, 50),
-    TYP8("Schulleiter",    12, 45,  50, Color.color(0.1,0.1,0.1),   TYP7,  2, 100);
+    // --- GROSS (72px, speed 50) ---
+    TYP7("Maturant",        8, 72,  50, Color.DARKGRAY,             TYP5,  4, 50),
+    TYP8("Schulleiter",    12, 72,  50, Color.color(0.1,0.1,0.1),   TYP7,  2, 100);
 
     public final String anzeigeName;
     public final int    maxHp;

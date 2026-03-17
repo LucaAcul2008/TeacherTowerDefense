@@ -8,7 +8,9 @@ import com.almasb.fxgl.entity.SpawnData;
 import com.almasb.fxgl.entity.Spawns;
 import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.HitBox;
+import com.almasb.fxgl.texture.Texture;
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
@@ -30,7 +32,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
         Entity schueler = FXGL.entityBuilder(data)
                 .type(EntityType.SCHUELER)
-                .viewWithBBox(new Rectangle(g, g, typ.farbe))
+                .viewWithBBox(schuelerView(typ))
                 .collidable()
                 .with(new SchuelerComponent(typ))
                 .zIndex(100)
@@ -48,7 +50,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
     public Entity newLehrer1(SpawnData data) {
         return FXGL.entityBuilder(data)
                 .type(EntityType.LEHRER)
-                .viewWithBBox(new Rectangle(30, 30, Color.BLUE))
+                .viewWithBBox(lehrerView(48))
                 .with(new LehrerComponent())
                 .with(new TowerComponent(150, 1.0))
                 .zIndex(10)
@@ -59,14 +61,55 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
     public Entity newLehrerSchatten(SpawnData data) {
         Circle rangeCircle = new Circle(150, Color.color(1, 1, 1, 0.2));
         rangeCircle.setStroke(Color.WHITE);
-        rangeCircle.setCenterX(15);
-        rangeCircle.setCenterY(15);
-        Rectangle body = new Rectangle(30, 30, Color.color(0, 0, 1, 0.5));
+        rangeCircle.setCenterX(24);
+        rangeCircle.setCenterY(24);
+        Rectangle body = new Rectangle(48, 48, Color.color(0, 0, 1, 0.5));
         return FXGL.entityBuilder(data)
                 .view(rangeCircle)
                 .viewWithBBox(body)
                 .zIndex(100)
                 .build();
+    }
+
+    // ============================================================
+    // TEXTURE HELPER
+    // ============================================================
+
+    /** Lädt Schüler-Textur oder fällt auf gefärbtes Rechteck zurück */
+    private Node schuelerView(SchuelerTyp typ) {
+        String dateiname = switch (typ) {
+            case TYP1 -> "Jonathan.png";
+            case TYP2 -> "Gutmann.png";
+            case TYP3 -> "Wojciech.png";
+            case TYP4 -> "Maxi.png";
+            case TYP5 -> "Toni.png";
+            case TYP6 -> "Marko.png";
+            default   -> null; // TYP7–TYP8: Fallback
+        };
+        int g = typ.groesse;
+        if (dateiname != null) {
+            try {
+                // Höhe = groesse, Breite proportional → kein Stauchen
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(FXGL.image(dateiname));
+                iv.setFitHeight(g);
+                iv.setFitWidth(g);
+                iv.setPreserveRatio(true);
+                iv.setSmooth(false);
+                return iv;
+            } catch (Exception e) {
+                // Fallback
+            }
+        }
+        return new Rectangle(g, g, typ.farbe);
+    }
+
+    /** Lädt Lehrer-Textur oder fällt auf blaues Rechteck zurück */
+    private Node lehrerView(int groesse) {
+        try {
+            return FXGL.texture("Groebl.png", groesse, groesse);
+        } catch (Exception e) {
+            return new Rectangle(groesse, groesse, Color.BLUE);
+        }
     }
 
     @Spawns("Projektil")

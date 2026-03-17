@@ -122,7 +122,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
             Entity gefunden = null;
             for (Entity lehrer : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
-                if (Math.abs(lehrer.getX()+15 - wx) < 20 && Math.abs(lehrer.getY()+15 - wy) < 20) {
+                if (Math.abs(lehrer.getX()+24 - wx) < 28 && Math.abs(lehrer.getY()+24 - wy) < 28) {
                     gefunden = lehrer; break;
                 }
             }
@@ -168,9 +168,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
         Line shopTrenn = new Line(965, 42, 1195, 42);
         shopTrenn.setStroke(Color.web("#333355")); shopTrenn.setStrokeWidth(1);
 
-        Rectangle shopIcon1 = new Rectangle(40, 40, Color.web("#3498db"));
-        shopIcon1.setTranslateX(1060); shopIcon1.setTranslateY(52);
-        shopIcon1.setArcWidth(6); shopIcon1.setArcHeight(6);
+        // Lehrer-Bild im Shop – Fallback auf blaues Rechteck wenn Bild fehlt
+        javafx.scene.Node shopIcon1 = ladeLehrerShopIcon(1048, 52, 56, 56);
         Text shopName  = new Text("Lehrer"); shopName.setTranslateX(1048); shopName.setTranslateY(104);
         shopName.setFill(Color.LIGHTGRAY); shopName.setStyle("-fx-font-size: 11px;");
         Text shopPreis = new Text("20 €");  shopPreis.setTranslateX(1058); shopPreis.setTranslateY(118);
@@ -184,11 +183,11 @@ public class TeacherTowerDefenseApp extends GameApplication {
             if (FXGL.geti("geld") >= 20) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
         });
         shopIcon1.setOnMouseDragged(e -> {
-            shopIcon1.setTranslateX(FXGL.getInput().getMouseXUI() - 20);
-            shopIcon1.setTranslateY(FXGL.getInput().getMouseYUI() - 20);
+            shopIcon1.setTranslateX(FXGL.getInput().getMouseXUI() - 28);
+            shopIcon1.setTranslateY(FXGL.getInput().getMouseYUI() - 28);
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                lehrerSchatten.setPosition(mx - 15, my - 15);
+                lehrerSchatten.setPosition(mx - 24, my - 24);
                 boolean koll = kollidiert(mx, my) || mx >= 960;
                 Circle rc    = (Circle)    lehrerSchatten.getViewComponent().getChildren().get(0);
                 Rectangle bd = (Rectangle) lehrerSchatten.getViewComponent().getChildren().get(1);
@@ -199,7 +198,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         shopIcon1.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer1", mx-15, my-15); FXGL.inc("geld", -20); }
+                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer1", mx-24, my-24); FXGL.inc("geld", -20); }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
             }
             shopIcon1.setTranslateX(sx); shopIcon1.setTranslateY(sy);
@@ -316,7 +315,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
         rangeIndicator = FXGL.spawn("RangeIndicator",
-                new SpawnData(ausgewaehlterLehrer.getX()+15, ausgewaehlterLehrer.getY()+15)
+                new SpawnData(ausgewaehlterLehrer.getX()+24, ausgewaehlterLehrer.getY()+24)
                         .put("range", lc.getRange()));
     }
 
@@ -425,7 +424,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
             }
         }
         for (Entity a : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER))
-            if (Math.abs(a.getX()+15-mouseX) < 35 && Math.abs(a.getY()+15-mouseY) < 35) return true;
+            if (Math.abs(a.getX()+24-mouseX) < 42 && Math.abs(a.getY()+24-mouseY) < 42) return true;
         return false;
     }
 
@@ -465,6 +464,26 @@ public class TeacherTowerDefenseApp extends GameApplication {
     private Line mkLine(double x1, double y1, double x2, double y2) {
         Line l = new Line(x1,y1,x2,y2); l.setStroke(Color.web("#333355")); l.setStrokeWidth(1);
         return l;
+    }
+
+    /** Lädt Lehrerbild für den Shop, Fallback auf blaues Rechteck */
+    private javafx.scene.Node ladeLehrerShopIcon(double x, double y, double w, double h) {
+        try {
+            javafx.scene.image.Image img = FXGL.image("Groebl.png");
+            javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(img);
+            iv.setFitWidth(w);
+            iv.setFitHeight(h);
+            iv.setPreserveRatio(true);
+            iv.setSmooth(false); // Pixel-Art scharf lassen
+            iv.setTranslateX(x);
+            iv.setTranslateY(y);
+            return iv;
+        } catch (Exception e) {
+            Rectangle r = new Rectangle(w, h, Color.web("#3498db"));
+            r.setArcWidth(6); r.setArcHeight(6);
+            r.setTranslateX(x); r.setTranslateY(y);
+            return r;
+        }
     }
 
     public static void main(String[] args) { launch(args); }
