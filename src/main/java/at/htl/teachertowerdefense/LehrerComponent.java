@@ -7,12 +7,16 @@ import java.util.List;
 /**
  * Verwaltet Upgrade-Zustand eines Lehrers.
  *
- * BTD6 5-2-0 Regel (3 Pfade):
- *   - Nur EIN Pfad darf auf 3+ gehen (wird dann zum "Hauptpfad")
- *   - Die anderen beiden Pfade dürfen maximal auf Stufe 2
- *   - Sobald Hauptpfad bestimmt ist, kann kein anderer mehr Hauptpfad werden
+ * 2-stufiges System:
+ *   1. FREISCHALTEN: Upgrade mit XP dauerhaft freischalten (SaveData, einmalig)
+ *   2. KAUFEN: Freigeschaltetes Upgrade mit Münzen kaufen (pro Turm, pro Spiel)
+ *
+ * BTD6 5-2-0 Regel gilt weiterhin für das Kaufen.
  */
 public class LehrerComponent extends Component {
+
+    // Lehrer-Typ Index (0 = Lehrer1) für SaveData
+    private final int lehrerTyp = 0;
 
     private int stufePfadA = 0;
     private int stufePfadB = 0;
@@ -41,10 +45,9 @@ public class LehrerComponent extends Component {
     }
 
     // ============================================================
-    // BTD6 5-2-0 REGEL
+    // BTD6 5-2-0 REGEL (Kauf-Logik)
     // ============================================================
 
-    /** Wie viele Pfade haben mindestens 1 Upgrade? */
     private int pfadeMitUpgrades() {
         int count = 0;
         if (stufePfadA > 0) count++;
@@ -53,7 +56,6 @@ public class LehrerComponent extends Component {
         return count;
     }
 
-    /** Welcher Pfad ist der Hauptpfad (Stufe 3+)? -1 = noch keiner */
     private int hauptPfad() {
         if (stufePfadA >= 3) return 0;
         if (stufePfadB >= 3) return 1;
@@ -61,18 +63,55 @@ public class LehrerComponent extends Component {
         return -1;
     }
 
+    // ============================================================
+    // FREISCHALTEN (XP) – dauerhaft in SaveData
+    // ============================================================
+
+    /** Versucht nächste Stufe von Pfad A mit XP freizuschalten */
+    public boolean freischaltenA() {
+        if (stufePfadA >= pfadA.size()) return false;
+        LehrerUpgrade u = pfadA.get(stufePfadA);
+        return SaveData.upgradeFreischalten(lehrerTyp, 0, stufePfadA, u.xpKosten);
+    }
+
+    public boolean freischaltenB() {
+        if (stufePfadB >= pfadB.size()) return false;
+        LehrerUpgrade u = pfadB.get(stufePfadB);
+        return SaveData.upgradeFreischalten(lehrerTyp, 1, stufePfadB, u.xpKosten);
+    }
+
+    public boolean freischaltenC() {
+        if (stufePfadC >= pfadC.size()) return false;
+        LehrerUpgrade u = pfadC.get(stufePfadC);
+        return SaveData.upgradeFreischalten(lehrerTyp, 2, stufePfadC, u.xpKosten);
+    }
+
+    /** Ist die aktuelle Stufe bereits dauerhaft freigeschaltet? */
+    public boolean istFreigeschaltetA() { return stufePfadA < pfadA.size() && SaveData.istUpgradeFrei(lehrerTyp, 0, stufePfadA); }
+    public boolean istFreigeschaltetB() { return stufePfadB < pfadB.size() && SaveData.istUpgradeFrei(lehrerTyp, 1, stufePfadB); }
+    public boolean istFreigeschaltetC() { return stufePfadC < pfadC.size() && SaveData.istUpgradeFrei(lehrerTyp, 2, stufePfadC); }
+
+    /** XP-Kosten der nächsten Stufe */
+    public int xpKostenA() { return stufePfadA < pfadA.size() ? pfadA.get(stufePfadA).xpKosten : -1; }
+    public int xpKostenB() { return stufePfadB < pfadB.size() ? pfadB.get(stufePfadB).xpKosten : -1; }
+    public int xpKostenC() { return stufePfadC < pfadC.size() ? pfadC.get(stufePfadC).xpKosten : -1; }
+
+    // ============================================================
+    // KAUFEN (Münzen) – pro Turm
+    // ============================================================
+
     public boolean kannUpgradeA() {
         if (stufePfadA >= 5) return false;
+        if (!SaveData.istUpgradeFrei(lehrerTyp, 0, stufePfadA)) return false; // nicht freigeschaltet
         int hp = hauptPfad();
-        // Wenn ein anderer Pfad Hauptpfad ist, darf A max auf 2
         if (hp != -1 && hp != 0 && stufePfadA >= 2) return false;
-        // 5-2-0 Regel: wenn A noch 0 hat, aber schon 2 andere Pfade Upgrades haben → gesperrt
         if (stufePfadA == 0 && pfadeMitUpgrades() >= 2) return false;
         return true;
     }
 
     public boolean kannUpgradeB() {
         if (stufePfadB >= 5) return false;
+        if (!SaveData.istUpgradeFrei(lehrerTyp, 1, stufePfadB)) return false;
         int hp = hauptPfad();
         if (hp != -1 && hp != 1 && stufePfadB >= 2) return false;
         if (stufePfadB == 0 && pfadeMitUpgrades() >= 2) return false;
@@ -81,35 +120,18 @@ public class LehrerComponent extends Component {
 
     public boolean kannUpgradeC() {
         if (stufePfadC >= 5) return false;
+        if (!SaveData.istUpgradeFrei(lehrerTyp, 2, stufePfadC)) return false;
         int hp = hauptPfad();
         if (hp != -1 && hp != 2 && stufePfadC >= 2) return false;
         if (stufePfadC == 0 && pfadeMitUpgrades() >= 2) return false;
         return true;
     }
 
-    // ============================================================
-    // UPGRADE DURCHFÜHREN
-    // ============================================================
+    public void upgradeA() { if (!kannUpgradeA()) return; wendeAn(pfadA.get(stufePfadA)); stufePfadA++; }
+    public void upgradeB() { if (!kannUpgradeB()) return; wendeAn(pfadB.get(stufePfadB)); stufePfadB++; }
+    public void upgradeC() { if (!kannUpgradeC()) return; wendeAn(pfadC.get(stufePfadC)); stufePfadC++; }
 
-    public void upgradeA() {
-        if (!kannUpgradeA()) return;
-        wendeAnUpgrade(pfadA.get(stufePfadA));
-        stufePfadA++;
-    }
-
-    public void upgradeB() {
-        if (!kannUpgradeB()) return;
-        wendeAnUpgrade(pfadB.get(stufePfadB));
-        stufePfadB++;
-    }
-
-    public void upgradeC() {
-        if (!kannUpgradeC()) return;
-        wendeAnUpgrade(pfadC.get(stufePfadC));
-        stufePfadC++;
-    }
-
-    private void wendeAnUpgrade(LehrerUpgrade u) {
+    private void wendeAn(LehrerUpgrade u) {
         range       += u.rangeDelta;
         shootDelay  += u.shootDelayDelta;
         damage      += u.damageDelta;
@@ -142,6 +164,5 @@ public class LehrerComponent extends Component {
     public int     getStufePfadA()      { return stufePfadA; }
     public int     getStufePfadB()      { return stufePfadB; }
     public int     getStufePfadC()      { return stufePfadC; }
-
-    public String getUpgradeStatus()    { return stufePfadA + "-" + stufePfadB + "-" + stufePfadC; }
+    public String  getUpgradeStatus()   { return stufePfadA + "-" + stufePfadB + "-" + stufePfadC; }
 }

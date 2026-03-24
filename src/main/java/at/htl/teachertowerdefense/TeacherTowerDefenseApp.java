@@ -60,27 +60,35 @@ public class TeacherTowerDefenseApp extends GameApplication {
         settings.setFullScreenFromStart(true);
         settings.setPreserveResizeRatio(true);
         settings.setDeveloperMenuEnabled(false);
+        settings.setMainMenuEnabled(true);
+        settings.setGameMenuEnabled(true);
         // Unser Custom ESC-Menü mit Auto-Start Toggle
         settings.setSceneFactory(new CustomSceneFactory());
+        settings.setDeveloperMenuEnabled(true);
     }
 
     @Override
     protected void initGameVars(Map<String, Object> vars) {
         vars.put("leben", 20);
-        vars.put("geld",  100);
+        vars.put("geld",  10000);
         vars.put("runde", 1);
     }
 
     @Override
     protected void initGame() {
+        SaveData.laden();
         FXGL.getGameWorld().addEntityFactory(new TeacherTowerDefenseFactory());
-        FXGL.setLevelFromMap("Map1.tmx");
+        FXGL.setLevelFromMap(GameConfig.getMapDatei());
 
         roundManager = new RoundManager();
         roundManager.setOnRundeEnde(() -> {
             FXGL.set("runde", roundManager.getAktuelleRundeAnzeige());
             if (roundManager.isSpielEnde()) {
-                FXGL.getDialogService().showMessageBox("Du hast gewonnen! 🎉", () -> {});
+                // Münzen & Map-Fortschritt speichern
+                SaveData.mapBeendet(GameConfig.selectedMap, GameConfig.selectedDiff,
+                        GameConfig.getMuenzenBelohnung(), 50);
+                FXGL.getDialogService().showMessageBox(
+                        "🎉 Gewonnen!\n+" + GameConfig.getMuenzenBelohnung() + " Münzen", () -> {});
             } else if (CustomGameMenu.autoStart) {
                 // Auto-Start: liest direkt aus CustomGameMenu.autoStart
                 FXGL.getGameTimer().runOnceAfter(() -> starteRunde(), javafx.util.Duration.seconds(3));
@@ -328,6 +336,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) { deselect(); return; }
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
 
+        // XP im Titel anzeigen
+        upgradeTitel.setText("Lehrer  |  ⭐ " + SaveData.getXP(0) + " XP");
+
         statRange.setText(String.format("🎯  %.0fpx", lc.getRange()));
         statDamage.setText(String.format("⚔  %d Schaden", lc.getDamage()));
         statSpeed.setText(String.format("⚡  %.1fs", lc.getShootDelay()));
@@ -337,9 +348,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
         aktualisiereDots(dotsB, lc.getStufePfadB(), lc.kannUpgradeB(), FARBE_B, FARBE_B_DIM);
         aktualisiereDots(dotsC, lc.getStufePfadC(), lc.kannUpgradeC(), FARBE_C, FARBE_C_DIM);
 
-        aktualisierePfadBtn(btnA, labelA, kostenA, "Pfad A – Speed",      lc.nameA(), lc.kostenA(), lc.kannUpgradeA(), FARBE_A_DIM, FARBE_A);
-        aktualisierePfadBtn(btnB, labelB, kostenB, "Pfad B – Schaden",    lc.nameB(), lc.kostenB(), lc.kannUpgradeB(), FARBE_B_DIM, FARBE_B);
-        aktualisierePfadBtn(btnC, labelC, kostenC, "Pfad C – Reichweite", lc.nameC(), lc.kostenC(), lc.kannUpgradeC(), FARBE_C_DIM, FARBE_C);
+        aktualisierePfadBtn(btnA, labelA, kostenA, "Pfad A – Speed",      lc.nameA(), lc.kostenA(), lc.xpKostenA(), lc.istFreigeschaltetA(), lc.kannUpgradeA(), FARBE_A_DIM, FARBE_A);
+        aktualisierePfadBtn(btnB, labelB, kostenB, "Pfad B – Schaden",    lc.nameB(), lc.kostenB(), lc.xpKostenB(), lc.istFreigeschaltetB(), lc.kannUpgradeB(), FARBE_B_DIM, FARBE_B);
+        aktualisierePfadBtn(btnC, labelC, kostenC, "Pfad C – Reichweite", lc.nameC(), lc.kostenC(), lc.xpKostenC(), lc.istFreigeschaltetC(), lc.kannUpgradeC(), FARBE_C_DIM, FARBE_C);
     }
 
     private void aktualisiereDots(Circle[] dots, int stufe, boolean kannUpgrade, Color aktiv, Color inaktiv) {
@@ -352,27 +363,55 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
     private void aktualisierePfadBtn(Rectangle btn, Text label, Text kosten,
                                      String pfadName, String upgradeName,
-                                     int upgradeKosten, boolean kannUpgrade,
+                                     int upgradeKosten, int xpKosten,
+                                     boolean istFrei, boolean kannUpgrade,
                                      Color dunkel, Color hell) {
         if (upgradeKosten < 0) {
-            label.setText(pfadName + "  ✓ MAX"); kosten.setText(""); btn.setFill(dunkel.darker());
+            label.setText(kannUpgrade ? pfadName + "  ✓ MAX" : pfadName + "  🔒");
+            kosten.setText("");
+            btn.setFill(dunkel.darker());
+        } else if (!istFrei) {
+            // Noch nicht mit XP freigeschaltet → XP-Kosten + was man hat anzeigen
+            int xp = SaveData.lehrerXP[0];
+            boolean genugXP = xp >= xpKosten;
+            label.setText("🔓  " + upgradeName);
+            kosten.setText("Freischalten: " + xpKosten + " XP  (du hast " + xp + ")"
+                    + (genugXP ? " ← klicken" : " ✗"));
+            btn.setFill(genugXP ? Color.web("#1a3a5a") : dunkel.darker());
         } else if (!kannUpgrade) {
-            label.setText(pfadName + "  🔒"); kosten.setText(""); btn.setFill(dunkel.darker());
+            label.setText(pfadName + "  🔒");
+            kosten.setText("Durch BTD6-Regel gesperrt");
+            btn.setFill(dunkel.darker());
         } else if (FXGL.geti("geld") >= upgradeKosten) {
-            label.setText(upgradeName); kosten.setText("Kosten: " + upgradeKosten + " €  ← klicken"); btn.setFill(dunkel);
+            label.setText("✅  " + upgradeName);
+            kosten.setText("💰 " + upgradeKosten + " €  ← klicken");
+            btn.setFill(dunkel);
         } else {
-            label.setText(upgradeName); kosten.setText("Kosten: " + upgradeKosten + " €  💸 zu wenig"); btn.setFill(dunkel.darker());
+            label.setText(upgradeName);
+            kosten.setText("💰 " + upgradeKosten + " €  (du hast " + FXGL.geti("geld") + " €) ✗");
+            btn.setFill(dunkel.darker());
         }
     }
 
     private void kaufeUpgrade(char pfad) {
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
-        int kosten;
         switch (pfad) {
-            case 'A' -> { kosten=lc.kostenA(); if(kosten<0||FXGL.geti("geld")<kosten) return; FXGL.inc("geld",-kosten); lc.upgradeA(); }
-            case 'B' -> { kosten=lc.kostenB(); if(kosten<0||FXGL.geti("geld")<kosten) return; FXGL.inc("geld",-kosten); lc.upgradeB(); }
-            case 'C' -> { kosten=lc.kostenC(); if(kosten<0||FXGL.geti("geld")<kosten) return; FXGL.inc("geld",-kosten); lc.upgradeC(); }
+            case 'A' -> {
+                if (!lc.istFreigeschaltetA()) { lc.freischaltenA(); aktualisiereUpgradePanel(); return; }
+                int k = lc.kostenA(); if (k < 0 || FXGL.geti("geld") < k) return;
+                FXGL.inc("geld", -k); lc.upgradeA();
+            }
+            case 'B' -> {
+                if (!lc.istFreigeschaltetB()) { lc.freischaltenB(); aktualisiereUpgradePanel(); return; }
+                int k = lc.kostenB(); if (k < 0 || FXGL.geti("geld") < k) return;
+                FXGL.inc("geld", -k); lc.upgradeB();
+            }
+            case 'C' -> {
+                if (!lc.istFreigeschaltetC()) { lc.freischaltenC(); aktualisiereUpgradePanel(); return; }
+                int k = lc.kostenC(); if (k < 0 || FXGL.geti("geld") < k) return;
+                FXGL.inc("geld", -k); lc.upgradeC();
+            }
         }
         aktualisiereRangeIndicator();
         aktualisiereUpgradePanel();

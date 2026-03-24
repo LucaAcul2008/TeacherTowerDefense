@@ -36,6 +36,9 @@ public class SchuelerComponent extends Component {
 
     private void sterben(int overkillDamage) {
         FXGL.inc("geld", typ.belohnung);
+        // XP für den eingesetzten Lehrer-Typ vergeben
+        SaveData.lehrerXP[0] += typ.maxHp; // mehr HP = mehr XP
+        SaveData.speichern();
 
         final double x            = entity.getX() + typ.groesse / 2.0;
         final double y            = entity.getY() + typ.groesse / 2.0;
