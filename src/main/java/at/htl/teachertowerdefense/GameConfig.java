@@ -34,8 +34,8 @@ public class GameConfig {
 
     public static String getMapDatei() {
         return switch (selectedMap) {
-            case 1 -> "Map2.tmx";
-            case 2 -> "Map3.tmx";
+            case 1  -> "City.tmx";
+            case 2  -> "Map3.tmx";
             default -> "Map1.tmx";
         };
     }

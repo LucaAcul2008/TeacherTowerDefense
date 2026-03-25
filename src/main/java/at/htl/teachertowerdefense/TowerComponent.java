@@ -52,9 +52,19 @@ public class TowerComponent extends Component {
 
         inRange.sort(Comparator.comparingDouble(e -> e.distance(entity)));
 
+        // Projektil-Typ je nach Lehrer
+        String projektilTyp = "ProjektilFloppy"; // Winkler default
+        if (lc != null) {
+            projektilTyp = switch (lc.getLehrerTyp()) {
+                case 0 -> "ProjektilBoomerang"; // Groebl → Fisch-Boomerang
+                case 1 -> "ProjektilPotion";    // Feichtner → AoE Potion
+                default -> "ProjektilFloppy";   // Winkler → Floppy Disk
+            };
+        }
+
         int schuesse = Math.min(maxTargets, inRange.size());
         for (int i = 0; i < schuesse; i++) {
-            FXGL.spawn("Projektil",
+            FXGL.spawn(projektilTyp,
                     new SpawnData(entity.getCenter().getX(), entity.getCenter().getY())
                             .put("target", inRange.get(i))
                             .put("damage", damage)

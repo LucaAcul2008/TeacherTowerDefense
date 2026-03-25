@@ -78,17 +78,21 @@ public class CustomGameMenu extends FXGLMenu {
                 trenn2, btnExit);
         layout.setAlignment(Pos.CENTER);
 
-        double bgH = 360;
-        double bgW = 360;
+        double bgH = 380;
+        double bgW = 380;
+        double startX = W / 2.0 - bgW / 2.0;
+        double startY = H / 2.0 - bgH / 2.0;
 
         Rectangle bg = new Rectangle(bgW, bgH, Color.color(0.07, 0.07, 0.12, 0.97));
         bg.setArcWidth(16); bg.setArcHeight(16);
         bg.setStroke(Color.web("#333355")); bg.setStrokeWidth(2);
+        bg.setTranslateX(startX);
+        bg.setTranslateY(startY);
 
-        layout.setTranslateX(W / 2.0 - bgW / 2.0);
-        layout.setTranslateY(H / 2.0 - bgH / 2.0);
-        bg.setTranslateX(W / 2.0 - bgW / 2.0);
-        bg.setTranslateY(H / 2.0 - bgH / 2.0);
+        layout.setPrefWidth(bgW);
+        layout.setMaxWidth(bgW);
+        layout.setTranslateX(startX);
+        layout.setTranslateY(startY);
 
         getContentRoot().getChildren().addAll(bg, layout);
     }

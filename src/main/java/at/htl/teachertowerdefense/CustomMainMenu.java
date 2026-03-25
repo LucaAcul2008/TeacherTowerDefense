@@ -20,10 +20,10 @@ public class CustomMainMenu extends FXGLMenu {
     private int selectedMap  = 0;
     private int selectedDiff = 0; // 0=Easy, 1=Medium, 2=Hard
 
-    private static final String[] MAP_NAMEN = { "HTL Saalfelden", "Map 2", "Map 3" };
+    private static final String[] MAP_NAMEN = { "HTL Saalfelden", "City", "Map 3" };
     private static final String[] DIFF_NAMEN = { "Easy", "Medium", "Hard" };
     private static final Color[]  DIFF_FARBEN = {
-        Color.web("#27ae60"), Color.web("#e67e22"), Color.web("#c0392b")
+            Color.web("#27ae60"), Color.web("#e67e22"), Color.web("#c0392b")
     };
     private static final int[] DIFF_MUENZEN  = { 100, 175, 250 };
 

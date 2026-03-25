@@ -1,22 +1,19 @@
 package at.htl.teachertowerdefense;
 
 import com.almasb.fxgl.entity.component.Component;
-
 import java.util.List;
 
 /**
  * Verwaltet Upgrade-Zustand eines Lehrers.
+ * Unterstützt Lehrer 0 (Groebl), 1 (Feichtner), 2 (Winkler).
  *
  * 2-stufiges System:
- *   1. FREISCHALTEN: Upgrade mit XP dauerhaft freischalten (SaveData, einmalig)
- *   2. KAUFEN: Freigeschaltetes Upgrade mit Münzen kaufen (pro Turm, pro Spiel)
- *
- * BTD6 5-2-0 Regel gilt weiterhin für das Kaufen.
+ *   1. FREISCHALTEN mit XP (dauerhaft, SaveData)
+ *   2. KAUFEN mit Münzen (pro Turm, pro Spiel)
  */
 public class LehrerComponent extends Component {
 
-    // Lehrer-Typ Index (0 = Lehrer1) für SaveData
-    private final int lehrerTyp = 0;
+    private final int lehrerTyp; // 0=Groebl, 1=Feichtner, 2=Winkler
 
     private int stufePfadA = 0;
     private int stufePfadB = 0;
@@ -32,28 +29,54 @@ public class LehrerComponent extends Component {
     private final List<LehrerUpgrade> pfadB;
     private final List<LehrerUpgrade> pfadC;
 
-    public LehrerComponent() {
-        this.pfadA = LehrerUpgradePfade.LEHRER1_PFAD_A;
-        this.pfadB = LehrerUpgradePfade.LEHRER1_PFAD_B;
-        this.pfadC = LehrerUpgradePfade.LEHRER1_PFAD_C;
+    /** Lehrer 0 = Groebl (Standard) */
+    public LehrerComponent() { this(0); }
 
-        this.range            = LehrerUpgradePfade.BASE_RANGE;
-        this.shootDelay       = LehrerUpgradePfade.BASE_SHOOT_DELAY;
-        this.damage           = LehrerUpgradePfade.BASE_DAMAGE;
-        this.multiTarget      = LehrerUpgradePfade.BASE_MULTI_TARGET;
-        this.spezialProjektil = false;
+    public LehrerComponent(int lehrerTyp) {
+        this.lehrerTyp = lehrerTyp;
+
+        switch (lehrerTyp) {
+            case 1 -> { // Feichtner – Sniper
+                pfadA = LehrerUpgradePfade.LEHRER2_PFAD_A;
+                pfadB = LehrerUpgradePfade.LEHRER2_PFAD_B;
+                pfadC = LehrerUpgradePfade.LEHRER2_PFAD_C;
+                range = LehrerUpgradePfade.BASE_RANGE_L2;
+                shootDelay = LehrerUpgradePfade.BASE_SHOOT_DELAY_L2;
+                damage = LehrerUpgradePfade.BASE_DAMAGE_L2;
+                multiTarget = LehrerUpgradePfade.BASE_MULTI_TARGET_L2;
+            }
+            case 2 -> { // Winkler – Rapidfire
+                pfadA = LehrerUpgradePfade.LEHRER3_PFAD_A;
+                pfadB = LehrerUpgradePfade.LEHRER3_PFAD_B;
+                pfadC = LehrerUpgradePfade.LEHRER3_PFAD_C;
+                range = LehrerUpgradePfade.BASE_RANGE_L3;
+                shootDelay = LehrerUpgradePfade.BASE_SHOOT_DELAY_L3;
+                damage = LehrerUpgradePfade.BASE_DAMAGE_L3;
+                multiTarget = LehrerUpgradePfade.BASE_MULTI_TARGET_L3;
+            }
+            default -> { // 0 = Groebl – Allrounder
+                pfadA = LehrerUpgradePfade.LEHRER1_PFAD_A;
+                pfadB = LehrerUpgradePfade.LEHRER1_PFAD_B;
+                pfadC = LehrerUpgradePfade.LEHRER1_PFAD_C;
+                range = LehrerUpgradePfade.BASE_RANGE_L1;
+                shootDelay = LehrerUpgradePfade.BASE_SHOOT_DELAY_L1;
+                damage = LehrerUpgradePfade.BASE_DAMAGE_L1;
+                multiTarget = LehrerUpgradePfade.BASE_MULTI_TARGET_L1;
+            }
+        }
+        spezialProjektil = false;
     }
 
     // ============================================================
-    // BTD6 5-2-0 REGEL (Kauf-Logik)
+    // BTD6 5-2-0 REGEL
     // ============================================================
 
     private int pfadeMitUpgrades() {
-        int count = 0;
-        if (stufePfadA > 0) count++;
-        if (stufePfadB > 0) count++;
-        if (stufePfadC > 0) count++;
-        return count;
+        int c = 0;
+        if (stufePfadA > 0) c++;
+        if (stufePfadB > 0) c++;
+        if (stufePfadC > 0) c++;
+        return c;
     }
 
     private int hauptPfad() {
@@ -67,31 +90,25 @@ public class LehrerComponent extends Component {
     // FREISCHALTEN (XP) – dauerhaft in SaveData
     // ============================================================
 
-    /** Versucht nächste Stufe von Pfad A mit XP freizuschalten */
     public boolean freischaltenA() {
         if (stufePfadA >= pfadA.size()) return false;
-        LehrerUpgrade u = pfadA.get(stufePfadA);
-        return SaveData.upgradeFreischalten(lehrerTyp, 0, stufePfadA, u.xpKosten);
+        return SaveData.upgradeFreischalten(lehrerTyp, 0, stufePfadA, pfadA.get(stufePfadA).xpKosten);
     }
 
     public boolean freischaltenB() {
         if (stufePfadB >= pfadB.size()) return false;
-        LehrerUpgrade u = pfadB.get(stufePfadB);
-        return SaveData.upgradeFreischalten(lehrerTyp, 1, stufePfadB, u.xpKosten);
+        return SaveData.upgradeFreischalten(lehrerTyp, 1, stufePfadB, pfadB.get(stufePfadB).xpKosten);
     }
 
     public boolean freischaltenC() {
         if (stufePfadC >= pfadC.size()) return false;
-        LehrerUpgrade u = pfadC.get(stufePfadC);
-        return SaveData.upgradeFreischalten(lehrerTyp, 2, stufePfadC, u.xpKosten);
+        return SaveData.upgradeFreischalten(lehrerTyp, 2, stufePfadC, pfadC.get(stufePfadC).xpKosten);
     }
 
-    /** Ist die aktuelle Stufe bereits dauerhaft freigeschaltet? */
     public boolean istFreigeschaltetA() { return stufePfadA < pfadA.size() && SaveData.istUpgradeFrei(lehrerTyp, 0, stufePfadA); }
     public boolean istFreigeschaltetB() { return stufePfadB < pfadB.size() && SaveData.istUpgradeFrei(lehrerTyp, 1, stufePfadB); }
     public boolean istFreigeschaltetC() { return stufePfadC < pfadC.size() && SaveData.istUpgradeFrei(lehrerTyp, 2, stufePfadC); }
 
-    /** XP-Kosten der nächsten Stufe */
     public int xpKostenA() { return stufePfadA < pfadA.size() ? pfadA.get(stufePfadA).xpKosten : -1; }
     public int xpKostenB() { return stufePfadB < pfadB.size() ? pfadB.get(stufePfadB).xpKosten : -1; }
     public int xpKostenC() { return stufePfadC < pfadC.size() ? pfadC.get(stufePfadC).xpKosten : -1; }
@@ -102,7 +119,7 @@ public class LehrerComponent extends Component {
 
     public boolean kannUpgradeA() {
         if (stufePfadA >= 5) return false;
-        if (!SaveData.istUpgradeFrei(lehrerTyp, 0, stufePfadA)) return false; // nicht freigeschaltet
+        if (!SaveData.istUpgradeFrei(lehrerTyp, 0, stufePfadA)) return false;
         int hp = hauptPfad();
         if (hp != -1 && hp != 0 && stufePfadA >= 2) return false;
         if (stufePfadA == 0 && pfadeMitUpgrades() >= 2) return false;
@@ -156,13 +173,14 @@ public class LehrerComponent extends Component {
     // GETTERS
     // ============================================================
 
-    public double  getRange()           { return range; }
-    public double  getShootDelay()      { return shootDelay; }
-    public int     getDamage()          { return damage; }
-    public int     getMultiTarget()     { return multiTarget; }
-    public boolean isSpezialProjektil() { return spezialProjektil; }
-    public int     getStufePfadA()      { return stufePfadA; }
-    public int     getStufePfadB()      { return stufePfadB; }
-    public int     getStufePfadC()      { return stufePfadC; }
-    public String  getUpgradeStatus()   { return stufePfadA + "-" + stufePfadB + "-" + stufePfadC; }
+    public int     getLehrerTyp()        { return lehrerTyp; }
+    public double  getRange()            { return range; }
+    public double  getShootDelay()       { return shootDelay; }
+    public int     getDamage()           { return damage; }
+    public int     getMultiTarget()      { return multiTarget; }
+    public boolean isSpezialProjektil()  { return spezialProjektil; }
+    public int     getStufePfadA()       { return stufePfadA; }
+    public int     getStufePfadB()       { return stufePfadB; }
+    public int     getStufePfadC()       { return stufePfadC; }
+    public String  getUpgradeStatus()    { return stufePfadA + "-" + stufePfadB + "-" + stufePfadC; }
 }

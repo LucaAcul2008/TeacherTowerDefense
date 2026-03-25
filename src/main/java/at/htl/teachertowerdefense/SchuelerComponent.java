@@ -36,8 +36,19 @@ public class SchuelerComponent extends Component {
 
     private void sterben(int overkillDamage) {
         FXGL.inc("geld", typ.belohnung);
-        // XP für den eingesetzten Lehrer-Typ vergeben
-        SaveData.lehrerXP[0] += typ.maxHp; // mehr HP = mehr XP
+
+        // XP an alle platzierten Lehrer vergeben (jeder Typ bekommt seinen eigenen XP-Pool)
+        int xpGewinn = typ.maxHp;
+        java.util.Set<Integer> bereitsGezaehlt = new java.util.HashSet<>();
+        for (com.almasb.fxgl.entity.Entity lehrer :
+                FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
+            if (lehrer.hasComponent(LehrerComponent.class)) {
+                int idx = lehrer.getComponent(LehrerComponent.class).getLehrerTyp();
+                if (bereitsGezaehlt.add(idx)) { // jeden Typ nur einmal
+                    SaveData.lehrerXP[idx] += xpGewinn;
+                }
+            }
+        }
         SaveData.speichern();
 
         final double x            = entity.getX() + typ.groesse / 2.0;
