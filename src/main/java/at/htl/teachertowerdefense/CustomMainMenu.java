@@ -45,6 +45,9 @@ public class CustomMainMenu extends FXGLMenu {
     public CustomMainMenu() {
         super(MenuType.MAIN_MENU);
 
+        // Immer neu laden wenn Menü geöffnet wird (z.B. nach Gewinn)
+        SaveData.laden();
+
         int W = FXGL.getAppWidth();
         int H = FXGL.getAppHeight();
 

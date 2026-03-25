@@ -189,17 +189,17 @@ public class TeacherTowerDefenseApp extends GameApplication {
         // Groebl (Lehrer1) – links
         javafx.scene.Node shopIcon1 = ladeLehrerShopIcon("Groebl.png",    968, 50, 52, 60, Color.web("#2980b9"));
         Text shopName1  = mkText("Groebl",    968, 118, Color.LIGHTGRAY, 10, false);
-        Text shopPreis1 = mkText("20 €",      975, 130, Color.web("#f1c40f"), 11, true);
+        Text shopPreis1 = mkText("100 €",    975, 130, Color.web("#f1c40f"), 11, true);
 
         // Feichtner (Lehrer2) – mitte
         javafx.scene.Node shopIcon2 = ladeLehrerShopIcon("Feichtner.png", 1043, 50, 52, 60, Color.web("#8e24aa"));
         Text shopName2  = mkText("Feichtner", 1033, 118, Color.LIGHTGRAY, 10, false);
-        Text shopPreis2 = mkText("30 €",      1048, 130, Color.web("#f1c40f"), 11, true);
+        Text shopPreis2 = mkText("150 €",     1048, 130, Color.web("#f1c40f"), 11, true);
 
         // Winkler (Lehrer3) – rechts
         javafx.scene.Node shopIcon3 = ladeLehrerShopIcon("Winkler.png",   1118, 50, 52, 60, Color.web("#27ae60"));
         Text shopName3  = mkText("Winkler",   1113, 118, Color.LIGHTGRAY, 10, false);
-        Text shopPreis3 = mkText("25 €",      1122, 130, Color.web("#f1c40f"), 11, true);
+        Text shopPreis3 = mkText("125 €",     1122, 130, Color.web("#f1c40f"), 11, true);
 
         Line shopTrenn2 = new Line(965, 138, 1195, 138);
         shopTrenn2.setStroke(Color.web("#333355")); shopTrenn2.setStrokeWidth(1);
@@ -207,7 +207,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         // Drag & Drop Lehrer1
         double sx = shopIcon1.getTranslateX(), sy = shopIcon1.getTranslateY();
         shopIcon1.setOnMousePressed(e -> {
-            if (FXGL.geti("geld") >= 20) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
+            if (FXGL.geti("geld") >= 100) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
         });
         shopIcon1.setOnMouseDragged(e -> {
             shopIcon1.setTranslateX(FXGL.getInput().getMouseXUI() - 28);
@@ -217,7 +217,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         shopIcon1.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer1", mx-24, my-24); FXGL.inc("geld", -20); }
+                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer1", mx-24, my-24); FXGL.inc("geld", -100); }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
             }
             shopIcon1.setTranslateX(sx); shopIcon1.setTranslateY(sy);
@@ -226,7 +226,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         // Drag & Drop Lehrer2 (Feichtner)
         double sx2 = shopIcon2.getTranslateX(), sy2 = shopIcon2.getTranslateY();
         shopIcon2.setOnMousePressed(e -> {
-            if (FXGL.geti("geld") >= 30) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
+            if (FXGL.geti("geld") >= 150) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
         });
         shopIcon2.setOnMouseDragged(e -> {
             shopIcon2.setTranslateX(FXGL.getInput().getMouseXUI() - 28);
@@ -236,7 +236,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         shopIcon2.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer2", mx-24, my-24); FXGL.inc("geld", -30); }
+                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer2", mx-24, my-24); FXGL.inc("geld", -150); }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
             }
             shopIcon2.setTranslateX(sx2); shopIcon2.setTranslateY(sy2);
@@ -245,7 +245,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         // Drag & Drop Lehrer3 (Winkler)
         double sx3 = shopIcon3.getTranslateX(), sy3 = shopIcon3.getTranslateY();
         shopIcon3.setOnMousePressed(e -> {
-            if (FXGL.geti("geld") >= 25) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
+            if (FXGL.geti("geld") >= 125) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
         });
         shopIcon3.setOnMouseDragged(e -> {
             shopIcon3.setTranslateX(FXGL.getInput().getMouseXUI() - 28);
@@ -255,7 +255,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         shopIcon3.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer3", mx-24, my-24); FXGL.inc("geld", -25); }
+                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer3", mx-24, my-24); FXGL.inc("geld", -125); }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
             }
             shopIcon3.setTranslateX(sx3); shopIcon3.setTranslateY(sy3);

@@ -185,7 +185,7 @@
   <object id="3" name="Pfad" type="Pfad" x="1" y="608.667">
    <polyline points="0,0 519,0 518.667,-129 438.667,-128.333 439,-88.3333 367,-88.6667 367.333,-369.333 591.333,-368.333 591.333,-145.333 958.667,-144.667"/>
   </object>
-  <object id="4" name="PfadAussen" type="PFadAussen" x="1.33333" y="624">
+  <object id="4" name="PfadAussen" type="PfadAussen" x="1.33333" y="624">
    <polygon points="0,0 541.667,0 542,-191.333 382.667,-191.667 383.333,-369 574.667,-368 575,-144.667 958,-144.333 958,-208.333 829.667,-209.667 830,-623.333 767,-623.667 767,-208.667 638.333,-208 638.333,-432 381.667,-432.667 382,-623.667 318.667,-623.667 319,-530.667 302.333,-527.667 303,-448.333 318.333,-448.333 318.667,-65.6667 -0.333333,-64.6667"/>
   </object>
   <object id="5" name="Baum" type="Baum" x="655.818" y="543.636" width="16" height="32.5455"/>
@@ -198,7 +198,7 @@
   <object id="12" name="Baum" type="Baum" x="768.125" y="607.852" width="16" height="32.5455"/>
   <object id="13" name="Bank" type="Bank" x="816.25" y="559.25" width="32.25" height="16.25"/>
   <object id="14" name="Bank" type="Bank" x="672.25" y="528.25" width="15" height="47.25"/>
-  <object id="15" name="Mistkübel" x="720.25" y="559.5" width="15.5" height="16.25"/>
+  <object id="15" name="Mistkübel" type="Mistkübel" x="720.25" y="559.5" width="15.5" height="16.25"/>
   <object id="16" name="FoodTruck" type="FoodTruck" x="768" y="543.75" width="15.5" height="32.5"/>
   <object id="17" name="FoodTruck" type="FoodTruck" x="255.75" y="510.667" width="15.5" height="32.5"/>
   <object id="18" name="FoodTruck" type="FoodTruck" x="736.25" y="158.417" width="15.5" height="32.5"/>
@@ -218,13 +218,13 @@
   <object id="35" name="Hydrant" type="Hydrant" x="528.188" y="176.068" width="15.625" height="15.5"/>
   <object id="36" name="Gemuese" type="Gemuese" x="480.091" y="143.727" width="47.9091" height="16.2727"/>
   <object id="37" name="Brunnen" type="Brunnen" x="400.25" y="272" width="159.75" height="127.5"/>
-  <object id="38" name="HausFront" x="80.6667" y="367.667" width="158" height="143"/>
+  <object id="38" name="HausFront" type="HausFront" x="80.6667" y="367.667" width="158" height="143"/>
   <object id="39" name="Dach" type="Dach" x="81" y="255.333" width="158.333" height="112"/>
   <object id="40" name="Dach" type="Dach" x="81.3333" y="0" width="158.333" height="47.6667"/>
   <object id="41" name="HausFront" type="HausFront" x="80.3333" y="47.3333" width="159.667" height="144.333"/>
   <object id="42" name="HausFront" type="HausFront" x="864.75" y="189.25" width="95.5" height="147"/>
   <object id="43" name="Dach" type="Dach" x="864.5" y="79.25" width="95.75" height="111.5"/>
-  <object id="45" name="Mistkübel" x="944.583" y="560.542" width="15.5" height="16.25"/>
+  <object id="45" name="Mistkübel" type="Mistkübel" x="944.583" y="560.542" width="15.5" height="16.25"/>
   <object id="46" name="HausFront" type="HausFront" x="417.273" y="64" width="126.727" height="79.6364"/>
   <object id="47" name="Dach" type="Dach" x="416.182" y="16.1818" width="127.455" height="47.0909"/>
   <object id="48" name="HausFront" type="HausFront" x="625" y="63" width="126.75" height="80.5"/>
