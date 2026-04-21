@@ -2,10 +2,6 @@ package at.htl.teachertowerdefense;
 
 import java.util.prefs.Preferences;
 
-/**
- * Speichert Spielfortschritt via Java Preferences.
- * Tracks: Münzen, XP pro Lehrer, Maps, freigeschaltete Upgrades.
- */
 public class SaveData {
 
     private static final Preferences PREFS = Preferences.userNodeForPackage(SaveData.class);
@@ -15,15 +11,19 @@ public class SaveData {
     public static boolean[][] abgeschlossen       = new boolean[3][3];
     public static boolean[]   mapFreigeschaltet   = { true, false, false };
 
-    // Freigeschaltete Upgrades: [lehrerTyp][pfad 0-2][stufe 0-4]
     private static boolean[][][] upgradesFrei = new boolean[5][3][5];
+
+    // ── SKINS ────────────────────────────────────────────────────
+    public static int[]     aktiverSkin         = new int[3];
+    public static boolean[][] skinFreigeschaltet = new boolean[3][2];
+    public static final int[] SKIN_PREISE        = { 200, 300, 250 };
 
     // -------------------------------------------------------
     // Laden / Speichern
     // -------------------------------------------------------
 
     public static void laden() {
-        muenzen = PREFS.getInt("muenzen", 0);
+        muenzen = PREFS.getInt("muenzen", 500);
         for (int i = 0; i < lehrerXP.length; i++)
             lehrerXP[i] = PREFS.getInt("xp" + i, 0);
         for (int m = 0; m < 3; m++) {
@@ -35,6 +35,13 @@ public class SaveData {
             for (int p = 0; p < 3; p++)
                 for (int s = 0; s < 5; s++)
                     upgradesFrei[l][p][s] = PREFS.getBoolean("upg_" + l + "_" + p + "_" + s, false);
+
+        // Skins laden
+        for (int i = 0; i < 3; i++) {
+            aktiverSkin[i]          = PREFS.getInt("skin_aktiv_" + i, 0);
+            skinFreigeschaltet[i][0] = true; // Standard immer gratis
+            skinFreigeschaltet[i][1] = PREFS.getBoolean("skin_frei_" + i + "_1", false);
+        }
     }
 
     public static void speichern() {
@@ -50,21 +57,22 @@ public class SaveData {
             for (int p = 0; p < 3; p++)
                 for (int s = 0; s < 5; s++)
                     PREFS.putBoolean("upg_" + l + "_" + p + "_" + s, upgradesFrei[l][p][s]);
+
+        // Skins speichern
+        for (int i = 0; i < 3; i++) {
+            PREFS.putInt("skin_aktiv_" + i, aktiverSkin[i]);
+            PREFS.putBoolean("skin_frei_" + i + "_1", skinFreigeschaltet[i][1]);
+        }
     }
 
     // -------------------------------------------------------
     // Upgrade Freischalten mit XP
     // -------------------------------------------------------
 
-    /**
-     * Schaltet ein Upgrade dauerhaft frei.
-     * Vorgänger-Stufe muss bereits freigeschaltet sein (außer Stufe 0).
-     * @return true wenn erfolgreich
-     */
     public static boolean upgradeFreischalten(int lehrerTyp, int pfad, int stufe, int xpKosten) {
-        if (upgradesFrei[lehrerTyp][pfad][stufe]) return true;        // schon frei
-        if (stufe > 0 && !upgradesFrei[lehrerTyp][pfad][stufe - 1]) return false; // Vorgänger fehlt
-        if (lehrerXP[lehrerTyp] < xpKosten) return false;             // zu wenig XP
+        if (upgradesFrei[lehrerTyp][pfad][stufe]) return true;
+        if (stufe > 0 && !upgradesFrei[lehrerTyp][pfad][stufe - 1]) return false;
+        if (lehrerXP[lehrerTyp] < xpKosten) return false;
         lehrerXP[lehrerTyp] -= xpKosten;
         upgradesFrei[lehrerTyp][pfad][stufe] = true;
         speichern();
@@ -76,6 +84,26 @@ public class SaveData {
     }
 
     public static int getXP(int lehrerTyp) { return lehrerXP[lehrerTyp]; }
+
+    // -------------------------------------------------------
+    // Skins
+    // -------------------------------------------------------
+
+    public static boolean kaufeSkin(int lehrerTyp) {
+        if (skinFreigeschaltet[lehrerTyp][1]) {
+            // Schon gekauft → nur an/ausschalten
+            aktiverSkin[lehrerTyp] = aktiverSkin[lehrerTyp] == 1 ? 0 : 1;
+            speichern();
+            return true;
+        }
+        int preis = SKIN_PREISE[lehrerTyp];
+        if (muenzen < preis) return false;
+        muenzen -= preis;
+        skinFreigeschaltet[lehrerTyp][1] = true;
+        aktiverSkin[lehrerTyp] = 1;
+        speichern();
+        return true;
+    }
 
     // -------------------------------------------------------
     // Map / Münzen
@@ -102,12 +130,13 @@ public class SaveData {
         return sterne;
     }
 
-    /** Für Entwicklung: kompletten Fortschritt zurücksetzen */
     public static void reset() {
         try { PREFS.clear(); } catch (Exception ignored) {}
         muenzen = 0; lehrerXP = new int[5];
         abgeschlossen = new boolean[3][3];
         mapFreigeschaltet = new boolean[]{ true, false, false };
         upgradesFrei = new boolean[5][3][5];
+        aktiverSkin = new int[3];
+        skinFreigeschaltet = new boolean[3][2];
     }
 }

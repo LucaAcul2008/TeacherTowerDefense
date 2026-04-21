@@ -49,7 +49,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
                 .zIndex(100)
                 .build();
 
-        WaypointMoveComponent navi = new WaypointMoveComponent(typ.speed, route);
+        WaypointMoveComponent navi = new WaypointMoveComponent(typ.speed * GameConfig.speedMulti, route);
         navi.atDestinationProperty().addListener((obs, old, arrived) -> {
             if (arrived) { FXGL.inc("leben", -typ.lebenSchaden); schueler.removeFromWorld(); }
         });
@@ -59,9 +59,10 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
     @Spawns("Lehrer1")
     public Entity newLehrer1(SpawnData data) {
+        String sprite = SaveData.aktiverSkin[0] == 1 ? "Groebl_2.png" : "Groebl.png";
         return FXGL.entityBuilder(data)
                 .type(EntityType.LEHRER)
-                .viewWithBBox(lehrerView("Groebl.png", 48))
+                .viewWithBBox(lehrerView(sprite, 48))
                 .with(new LehrerComponent(0))
                 .with(new TowerComponent(150, 1.0))
                 .zIndex(10)
@@ -70,9 +71,10 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
     @Spawns("Lehrer2")
     public Entity newLehrer2(SpawnData data) {
+        String sprite = SaveData.aktiverSkin[1] == 1 ? "Feichtner_2.png" : "Feichtner.png";
         return FXGL.entityBuilder(data)
                 .type(EntityType.LEHRER)
-                .viewWithBBox(lehrerView("Feichtner.png", 48))
+                .viewWithBBox(lehrerView(sprite, 48))
                 .with(new LehrerComponent(1))
                 .with(new TowerComponent(220, 1.8))
                 .zIndex(10)
@@ -81,9 +83,10 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
     @Spawns("Lehrer3")
     public Entity newLehrer3(SpawnData data) {
+        String sprite = SaveData.aktiverSkin[2] == 1 ? "Winkler_2.png" : "Winkler.png";
         return FXGL.entityBuilder(data)
                 .type(EntityType.LEHRER)
-                .viewWithBBox(lehrerView("Winkler.png", 48))
+                .viewWithBBox(lehrerView(sprite, 48))
                 .with(new LehrerComponent(2))
                 .with(new TowerComponent(100, 0.4))
                 .zIndex(10)

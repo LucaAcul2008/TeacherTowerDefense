@@ -16,7 +16,7 @@ public class HomingComponent extends Component {
     public void onUpdate(double tpf) {
         // Wenn der Schüler noch lebt, fliege auf ihn zu!
         if (target.isActive()) {
-            entity.translateTowards(target.getCenter(), speed * tpf);
+            entity.translateTowards(target.getCenter(), speed * tpf * GameConfig.speedMulti);
         } else {
             // Wenn der Schüler schon besiegt wurde, lösche das Projektil, damit es nicht ewig weiterfliegt
             entity.removeFromWorld();

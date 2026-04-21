@@ -6,6 +6,7 @@ package at.htl.teachertowerdefense;
 public class GameConfig {
     public static int selectedMap  = 0; // 0 = Map1 (HTL Saalfelden)
     public static int selectedDiff = 0; // 0=Easy, 1=Medium, 2=Hard
+    public static double speedMulti = 1.0;
 
     // Multiplikatoren pro Schwierigkeit
     public static double getStartgeldMulti() {

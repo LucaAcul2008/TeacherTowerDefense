@@ -36,6 +36,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
     private Rectangle startButton;
     private Text      startButtonText;
 
+    private boolean speedErhoehen = false;
+
     // Upgrade Panel
     private Rectangle upgradePanel;
     private Text      upgradeTitel;
@@ -69,7 +71,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
     @Override
     protected void initGameVars(Map<String, Object> vars) {
         vars.put("leben", 20);
-        vars.put("geld",  100);
+        vars.put("geld",  10000);
         vars.put("runde", 1);
     }
 
@@ -79,6 +81,10 @@ public class TeacherTowerDefenseApp extends GameApplication {
         SaveData.mapFreigeschaltet[1] = true; // TODO: entfernen wenn Map2 offiziell freigespielt werden soll
         FXGL.getGameWorld().addEntityFactory(new TeacherTowerDefenseFactory());
         FXGL.setLevelFromMap(GameConfig.getMapDatei());
+
+        GameConfig.speedMulti = 1.0;
+
+
 
         roundManager = new RoundManager();
         roundManager.setOnRundeEnde(() -> {
@@ -150,6 +156,10 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
     @Override
     protected void initUI() {
+
+
+
+
         // === STATS PANEL oben links ===
         Rectangle bgPanel = new Rectangle(210, 120, Color.color(0,0,0,0.6));
         bgPanel.setTranslateX(10); bgPanel.setTranslateY(10);
@@ -331,10 +341,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
         setzeUpgradePanelSichtbar(false);
 
         // === START BUTTON ===
-        startButton = new Rectangle(210, 42, Color.web("#27ae60"));
+        startButton = new Rectangle(100, 42, Color.web("#27ae60"));
         startButton.setTranslateX(PX); startButton.setTranslateY(560);
-        startButton.setArcWidth(8); startButton.setArcHeight(8);
-        startButtonText = mkText("▶   RUNDE STARTEN", PX+38, 588, Color.WHITE, 14, true);
+        startButtonText = mkText("▶  START", PX + 10, 588, Color.WHITE, 14, true);
         startButton.setOnMouseClicked(e -> starteRunde());
         startButtonText.setOnMouseClicked(e -> starteRunde());
         startButton.setOnMouseEntered(e -> { if (startButton.getFill().equals(Color.web("#27ae60"))) startButton.setFill(Color.web("#2ecc71")); });
@@ -351,6 +360,20 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 startButton, startButtonText, settingsHint,
                 bgPanel, textLeben, textGeld, textRunde
         );
+        // === SPEED BUTTON ===
+        Rectangle speedBtn = new Rectangle(100, 42, Color.web("#1a1a2e"));
+        speedBtn.setTranslateX(PX + 115); speedBtn.setTranslateY(560);
+        speedBtn.setArcWidth(8); speedBtn.setArcHeight(8);
+        speedBtn.setStroke(Color.web("#333355")); speedBtn.setStrokeWidth(1);
+
+        Text speedText = mkText("▶▶  1x", PX + 134, 588, Color.WHITE, 14, true);
+
+        speedBtn.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
+        speedText.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
+
+        FXGL.getGameScene().addUINodes(speedBtn, speedText);
+
+
         for (javafx.scene.Node node : panelNodes) FXGL.getGameScene().addUINode(node);
     }
 
@@ -608,6 +631,31 @@ public class TeacherTowerDefenseApp extends GameApplication {
             sp.getChildren().addAll(r, t);
             sp.setTranslateX(x); sp.setTranslateY(y);
             return sp;
+        }
+    }
+
+    private void toggleSpeed(Rectangle btn, Text text) {
+        speedErhoehen = !speedErhoehen;
+        GameConfig.speedMulti = speedErhoehen ? 2.0 : 1.0;
+
+        // Bestehende Schüler anpassen
+        FXGL.getGameWorld().getEntitiesByType(EntityType.SCHUELER).forEach(e -> {
+            var wmc = e.getComponent(
+                    com.almasb.fxgl.dsl.components.WaypointMoveComponent.class);
+            if (wmc != null) wmc.setSpeed(e.getComponent(SchuelerComponent.class)
+                    .getTyp().speed * GameConfig.speedMulti);
+        });
+
+        if (speedErhoehen) {
+            btn.setFill(Color.web("#e67e22"));
+            btn.setStroke(Color.web("#f39c12"));
+            text.setText("▶▶  2x");
+            text.setFill(Color.web("#f39c12"));
+        } else {
+            btn.setFill(Color.web("#1a1a2e"));
+            btn.setStroke(Color.web("#333355"));
+            text.setText("▶▶  1x");
+            text.setFill(Color.WHITE);
         }
     }
 

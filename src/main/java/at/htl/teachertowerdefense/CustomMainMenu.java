@@ -77,6 +77,63 @@ public class CustomMainMenu extends FXGLMenu {
 
         getContentRoot().getChildren().addAll(muenzenBg, muenzenText);
 
+        // ── SKIN SHOP (links oben, unter Münzen) ─────────────────
+        Rectangle skinBg = new Rectangle(320, 110, Color.color(0,0,0,0.65));
+        skinBg.setArcWidth(10); skinBg.setArcHeight(10);
+        skinBg.setTranslateX(20); skinBg.setTranslateY(75);  // unter Münzen-Anzeige
+
+        Text skinTitel = mkText("🎨 LEHRER SKINS", 30, 97,
+                Color.web("#9b59b6"), 12, true);
+
+        String[] skinNamen = { "Groebl Alt", "Feichtner Alt", "Winkler Alt" };
+        int[] skinPreise = SaveData.SKIN_PREISE;
+
+        for (int i = 0; i < 3; i++) {
+            final int idx = i;
+            boolean gekauft = SaveData.skinFreigeschaltet[i][1];
+            boolean aktiv   = SaveData.aktiverSkin[i] == 1;
+
+            Rectangle skinBtn = new Rectangle(90, 36,
+                    aktiv ? Color.web("#6c3483")
+                            : (gekauft ? Color.web("#2c3e7a")
+                            : (SaveData.muenzen >= skinPreise[i]
+                            ? Color.web("#1a3a1a")
+                            : Color.color(0.1, 0.1, 0.1, 0.9))));
+            skinBtn.setArcWidth(6); skinBtn.setArcHeight(6);
+            skinBtn.setTranslateX(24 + i * 100); skinBtn.setTranslateY(107);
+            skinBtn.setStroke(Color.web("#9b59b6")); skinBtn.setStrokeWidth(1);
+
+            skinBtn.setOnMouseEntered(e -> {
+                if (!SaveData.skinFreigeschaltet[idx][1] && SaveData.muenzen < SaveData.SKIN_PREISE[idx]) return;
+                skinBtn.setOpacity(0.8);
+            });
+            skinBtn.setOnMouseExited(e -> skinBtn.setOpacity(1.0));
+
+            String btnLabel = gekauft
+                    ? (aktiv ? "✓ AN" : "○ AUS")
+                    : skinPreise[i] + " 💰";
+            Text skinBtnText = mkText(btnLabel,
+                    32 + i * 100, 130, Color.WHITE, 11, true);
+
+            Text skinName = mkText(skinNamen[i],
+                    24 + i * 100, 147, Color.LIGHTGRAY, 9, false);
+
+            skinBtn.setOnMouseClicked(e -> {
+                if (SaveData.kaufeSkin(idx)) {
+                    muenzenText.setText("💰  " + SaveData.muenzen + " Münzen");
+                    boolean jetzt = SaveData.aktiverSkin[idx] == 1;
+                    skinBtn.setFill(jetzt ? Color.web("#6c3483")
+                            : Color.color(0.15, 0.15, 0.25, 0.9));
+                    skinBtnText.setText(jetzt ? "✓ AN" : "○ AUS");
+                }
+            });
+            skinBtnText.setOnMouseClicked(skinBtn.getOnMouseClicked());
+
+            getContentRoot().getChildren().addAll(skinBtn, skinBtnText, skinName);
+        }
+
+        getContentRoot().getChildren().addAll(skinBg, skinTitel);
+
         // ── MAP AUSWAHL ──────────────────────────────────────────
         Text mapTitel = mkText("KARTE WÄHLEN", W/2.0 - 100, H - 265,
                 Color.WHITE, 13, true);

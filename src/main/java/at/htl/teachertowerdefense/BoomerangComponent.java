@@ -39,7 +39,7 @@ public class BoomerangComponent extends Component {
             Point2D pos  = entity.getCenter();
             Point2D dir  = ziel.subtract(pos).normalize();
 
-            entity.translate(dir.getX() * SPEED * tpf, dir.getY() * SPEED * tpf);
+            entity.translate(dir.getX() * SPEED * tpf * GameConfig.speedMulti, dir.getY() * SPEED * tpf * GameConfig.speedMulti);
 
             if (pos.distance(ziel) < 20) {
                 if (!hatZielGetroffen) {
@@ -51,7 +51,7 @@ public class BoomerangComponent extends Component {
         } else {
             Point2D pos = entity.getCenter();
             Point2D dir = turretPos.subtract(pos).normalize();
-            entity.translate(dir.getX() * SPEED * tpf, dir.getY() * SPEED * tpf);
+            entity.translate(dir.getX() * SPEED * tpf * GameConfig.speedMulti, dir.getY() * SPEED * tpf * GameConfig.speedMulti);
 
             for (Entity s : FXGL.getGameWorld().getEntitiesByType(EntityType.SCHUELER)) {
                 if (s == target) continue;

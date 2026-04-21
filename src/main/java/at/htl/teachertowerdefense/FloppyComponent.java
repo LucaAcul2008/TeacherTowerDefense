@@ -36,8 +36,8 @@ public class FloppyComponent extends Component {
 
     @Override
     public void onUpdate(double tpf) {
-        entity.translate(direction.getX() * SPEED * tpf,
-                         direction.getY() * SPEED * tpf);
+        entity.translate(direction.getX() * SPEED * tpf * GameConfig.speedMulti,
+                         direction.getY() * SPEED * tpf * GameConfig.speedMulti);
 
         // Ziel getroffen?
         if (target != null && target.isActive()) {

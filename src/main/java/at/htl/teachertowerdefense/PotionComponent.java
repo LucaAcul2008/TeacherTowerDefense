@@ -45,7 +45,7 @@ public class PotionComponent extends Component {
         }
 
         Point2D norm = dir.normalize();
-        double  step = Math.min(SPEED * tpf, dist); // nicht überschießen
+        double  step = Math.min(SPEED * tpf * GameConfig.speedMulti, dist); // nicht überschießen
         entity.translate(norm.getX() * step, norm.getY() * step);
     }
 
