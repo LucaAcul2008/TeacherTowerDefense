@@ -230,6 +230,70 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
                 .build();
     }
 
+    @Spawns("ProjektilGolfball")
+    public Entity newProjektilGolfball(SpawnData data) {
+        Entity target = data.get("target");
+        int damage = data.hasKey("damage") ? (int) data.get("damage") : 1;
+
+        javafx.scene.Node view;
+        try {
+            // Lädt DEIN Bild: projektil_golfball.png
+            javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(FXGL.image("projektil_golfball.png"));
+            iv.setFitWidth(16); iv.setFitHeight(16);
+            view = iv;
+        } catch (Exception e) {
+            javafx.scene.shape.Circle c = new javafx.scene.shape.Circle(8, javafx.scene.paint.Color.WHITE);
+            c.setStroke(javafx.scene.paint.Color.BLACK);
+            view = c;
+        }
+
+        // Rotiert in der Luft
+        javafx.animation.RotateTransition rot = new javafx.animation.RotateTransition(
+                javafx.util.Duration.millis(400), view);
+        rot.setByAngle(360); rot.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        rot.play();
+
+        return FXGL.entityBuilder(data)
+                .type(EntityType.PROJEKTIL)
+                .view(view)
+                .bbox(new HitBox("body", new Point2D(-8, -8), BoundingShape.circle(8)))
+                .with(new FloppyComponent(target, damage))
+                .zIndex(150)
+                .build();
+    }
+
+    @Spawns("ProjektilMinecraft")
+    public Entity newProjektilMusicdisk(SpawnData data) {
+        Entity target = data.get("target");
+        int damage = data.hasKey("damage") ? (int) data.get("damage") : 1;
+
+        javafx.scene.Node view;
+        try {
+            // Lädt DEIN neues Bild: projektil_musicdisk.png
+            javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(FXGL.image("projektil_minecraft.png"));
+            iv.setFitWidth(24); iv.setFitHeight(24);
+            view = iv;
+        } catch (Exception e) {
+            // Fallback: Schwarzer Kreis
+            javafx.scene.shape.Circle c = new javafx.scene.shape.Circle(12, javafx.scene.paint.Color.DARKSLATEGRAY);
+            view = c;
+        }
+
+        // Die Schallplatte dreht sich im Flug!
+        javafx.animation.RotateTransition rot = new javafx.animation.RotateTransition(
+                javafx.util.Duration.millis(300), view);
+        rot.setByAngle(360); rot.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        rot.play();
+
+        return FXGL.entityBuilder(data)
+                .type(EntityType.PROJEKTIL)
+                .view(view)
+                .bbox(new HitBox("body", new Point2D(-12, -12), BoundingShape.circle(12)))
+                .with(new FloppyComponent(target, damage))
+                .zIndex(150)
+                .build();
+    }
+
     @Spawns("RangeIndicator")
     public Entity newRangeIndicator(SpawnData data) {
         double range = data.get("range");

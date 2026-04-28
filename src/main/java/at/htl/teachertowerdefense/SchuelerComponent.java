@@ -37,6 +37,28 @@ public class SchuelerComponent extends Component {
     private void sterben(int overkillDamage) {
         FXGL.inc("geld", typ.belohnung);
 
+        // --- NEU: MÜNZEN ANIMATION ---
+        javafx.scene.text.Text coinText = new javafx.scene.text.Text("+" + typ.belohnung + " \uD83D\uDCB0");
+        coinText.setFill(javafx.scene.paint.Color.GOLD);
+        coinText.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 18));
+        coinText.setStroke(javafx.scene.paint.Color.BLACK); // Outline für bessere Lesbarkeit
+        coinText.setStrokeWidth(1);
+
+        com.almasb.fxgl.entity.Entity animationEntity = FXGL.entityBuilder()
+                .at(entity.getX(), entity.getY() - 10)
+                .view(coinText)
+                .zIndex(200)
+                .buildAndAttach();
+
+        FXGL.animationBuilder()
+                .duration(javafx.util.Duration.seconds(0.8))
+                .onFinished(() -> animationEntity.removeFromWorld())
+                .translate(animationEntity)
+                .from(animationEntity.getPosition())
+                .to(animationEntity.getPosition().subtract(0, 40)) // 40px nach oben floaten
+                .buildAndPlay();
+        // -----------------------------
+
         // XP an alle platzierten Lehrer vergeben (jeder Typ bekommt seinen eigenen XP-Pool)
         int xpGewinn = typ.maxHp;
         java.util.Set<Integer> bereitsGezaehlt = new java.util.HashSet<>();
@@ -63,9 +85,11 @@ public class SchuelerComponent extends Component {
                 for (int i = 0; i < typ.kindAnzahl; i++) {
                     // Kind spawnen
                     var kindEntity = FXGL.spawn("Schueler",
-                            new SpawnData(x, y)
-                                    .put("typ", typ.kindTyp)
-                                    .put("startWaypoint", naechsterIndex)
+                            com.almasb.fxgl.entity.SpawnData.class.cast(
+                                    new com.almasb.fxgl.entity.SpawnData(x, y)
+                                            .put("typ", typ.kindTyp)
+                                            .put("startWaypoint", naechsterIndex)
+                            )
                     );
 
                     // Overkill-Schaden ans Kind weitergeben (falls > 0)
@@ -77,7 +101,7 @@ public class SchuelerComponent extends Component {
 
             entity.removeFromWorld();
 
-        }, Duration.ZERO);
+        }, javafx.util.Duration.ZERO);
     }
 
     public SchuelerTyp getTyp() { return typ; }

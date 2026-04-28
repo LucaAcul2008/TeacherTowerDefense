@@ -14,16 +14,16 @@ public class SaveData {
     private static boolean[][][] upgradesFrei = new boolean[5][3][5];
 
     // ── SKINS ────────────────────────────────────────────────────
-    public static int[]     aktiverSkin         = new int[3];
-    public static boolean[][] skinFreigeschaltet = new boolean[3][2];
-    public static final int[] SKIN_PREISE        = { 200, 300, 250 };
+    public static int[]      aktiverSkin          = new int[3];
+    public static boolean[][] skinFreigeschaltet  = new boolean[3][2];
+    public static final int[] SKIN_PREISE         = { 200, 300, 250 };
 
     // -------------------------------------------------------
     // Laden / Speichern
     // -------------------------------------------------------
 
     public static void laden() {
-        muenzen = PREFS.getInt("muenzen", 500);
+        muenzen = PREFS.getInt("muenzen", 500); // 500 zum Testen, danach auf 0 setzen
         for (int i = 0; i < lehrerXP.length; i++)
             lehrerXP[i] = PREFS.getInt("xp" + i, 0);
         for (int m = 0; m < 3; m++) {
@@ -38,7 +38,7 @@ public class SaveData {
 
         // Skins laden
         for (int i = 0; i < 3; i++) {
-            aktiverSkin[i]          = PREFS.getInt("skin_aktiv_" + i, 0);
+            aktiverSkin[i]           = PREFS.getInt("skin_aktiv_" + i, 0);
             skinFreigeschaltet[i][0] = true; // Standard immer gratis
             skinFreigeschaltet[i][1] = PREFS.getBoolean("skin_frei_" + i + "_1", false);
         }
@@ -132,7 +132,8 @@ public class SaveData {
 
     public static void reset() {
         try { PREFS.clear(); } catch (Exception ignored) {}
-        muenzen = 0; lehrerXP = new int[5];
+        muenzen = 0;
+        lehrerXP = new int[5];
         abgeschlossen = new boolean[3][3];
         mapFreigeschaltet = new boolean[]{ true, false, false };
         upgradesFrei = new boolean[5][3][5];

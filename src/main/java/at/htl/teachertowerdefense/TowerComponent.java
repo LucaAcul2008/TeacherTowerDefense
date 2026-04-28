@@ -39,7 +39,7 @@ public class TowerComponent extends Component {
         int    damage     = lc != null ? lc.getDamage()     : 1;
         int    maxTargets = lc != null ? lc.getMultiTarget(): 1;
 
-        if (!shootTimer.elapsed(Duration.seconds(shootDelay))) return;
+        if (!shootTimer.elapsed(Duration.seconds(shootDelay / GameConfig.speedMulti))) return;
 
         List<Entity> inRange = new ArrayList<>();
         for (Entity e : FXGL.getGameWorld().getEntitiesByType(EntityType.SCHUELER)) {
@@ -52,14 +52,10 @@ public class TowerComponent extends Component {
 
         inRange.sort(Comparator.comparingDouble(e -> e.distance(entity)));
 
-        // Projektil-Typ je nach Lehrer
-        String projektilTyp = "ProjektilFloppy"; // Winkler default
+
+        String projektilTyp = "ProjektilFloppy";
         if (lc != null) {
-            projektilTyp = switch (lc.getLehrerTyp()) {
-                case 0 -> "ProjektilBoomerang"; // Groebl → Fisch-Boomerang
-                case 1 -> "ProjektilPotion";    // Feichtner → AoE Potion
-                default -> "ProjektilFloppy";   // Winkler → Floppy Disk
-            };
+            projektilTyp = lc.getProjektilTyp();
         }
 
         int schuesse = Math.min(maxTargets, inRange.size());

@@ -1,15 +1,16 @@
 package at.htl.teachertowerdefense;
 
 import com.almasb.fxgl.entity.component.Component;
+
 import java.util.List;
 
 /**
  * Verwaltet Upgrade-Zustand eines Lehrers.
  * Unterstützt Lehrer 0 (Groebl), 1 (Feichtner), 2 (Winkler).
- *
+ * <p>
  * 2-stufiges System:
- *   1. FREISCHALTEN mit XP (dauerhaft, SaveData)
- *   2. KAUFEN mit Münzen (pro Turm, pro Spiel)
+ * 1. FREISCHALTEN mit XP (dauerhaft, SaveData)
+ * 2. KAUFEN mit Münzen (pro Turm, pro Spiel)
  */
 public class LehrerComponent extends Component {
 
@@ -19,18 +20,32 @@ public class LehrerComponent extends Component {
     private int stufePfadB = 0;
     private int stufePfadC = 0;
 
-    private double  range;
-    private double  shootDelay;
-    private int     damage;
-    private int     multiTarget;
+    private double range;
+    private double shootDelay;
+    private int damage;
+    private int multiTarget;
     private boolean spezialProjektil;
+
+    private int investiertesGeld = 0;
+
+    public void setBaseKosten(int kosten) {
+        this.investiertesGeld = kosten;
+    }
+
+    public int getInvestiertesGeld() {
+        return investiertesGeld;
+    }
 
     private final List<LehrerUpgrade> pfadA;
     private final List<LehrerUpgrade> pfadB;
     private final List<LehrerUpgrade> pfadC;
 
-    /** Lehrer 0 = Groebl (Standard) */
-    public LehrerComponent() { this(0); }
+    /**
+     * Lehrer 0 = Groebl (Standard)
+     */
+    public LehrerComponent() {
+        this(0);
+    }
 
     public LehrerComponent(int lehrerTyp) {
         this.lehrerTyp = lehrerTyp;
@@ -105,13 +120,29 @@ public class LehrerComponent extends Component {
         return SaveData.upgradeFreischalten(lehrerTyp, 2, stufePfadC, pfadC.get(stufePfadC).xpKosten);
     }
 
-    public boolean istFreigeschaltetA() { return stufePfadA < pfadA.size() && SaveData.istUpgradeFrei(lehrerTyp, 0, stufePfadA); }
-    public boolean istFreigeschaltetB() { return stufePfadB < pfadB.size() && SaveData.istUpgradeFrei(lehrerTyp, 1, stufePfadB); }
-    public boolean istFreigeschaltetC() { return stufePfadC < pfadC.size() && SaveData.istUpgradeFrei(lehrerTyp, 2, stufePfadC); }
+    public boolean istFreigeschaltetA() {
+        return stufePfadA < pfadA.size() && SaveData.istUpgradeFrei(lehrerTyp, 0, stufePfadA);
+    }
 
-    public int xpKostenA() { return stufePfadA < pfadA.size() ? pfadA.get(stufePfadA).xpKosten : -1; }
-    public int xpKostenB() { return stufePfadB < pfadB.size() ? pfadB.get(stufePfadB).xpKosten : -1; }
-    public int xpKostenC() { return stufePfadC < pfadC.size() ? pfadC.get(stufePfadC).xpKosten : -1; }
+    public boolean istFreigeschaltetB() {
+        return stufePfadB < pfadB.size() && SaveData.istUpgradeFrei(lehrerTyp, 1, stufePfadB);
+    }
+
+    public boolean istFreigeschaltetC() {
+        return stufePfadC < pfadC.size() && SaveData.istUpgradeFrei(lehrerTyp, 2, stufePfadC);
+    }
+
+    public int xpKostenA() {
+        return stufePfadA < pfadA.size() ? pfadA.get(stufePfadA).xpKosten : -1;
+    }
+
+    public int xpKostenB() {
+        return stufePfadB < pfadB.size() ? pfadB.get(stufePfadB).xpKosten : -1;
+    }
+
+    public int xpKostenC() {
+        return stufePfadC < pfadC.size() ? pfadC.get(stufePfadC).xpKosten : -1;
+    }
 
     // ============================================================
     // KAUFEN (Münzen) – pro Turm
@@ -144,14 +175,31 @@ public class LehrerComponent extends Component {
         return true;
     }
 
-    public void upgradeA() { if (!kannUpgradeA()) return; wendeAn(pfadA.get(stufePfadA)); stufePfadA++; }
-    public void upgradeB() { if (!kannUpgradeB()) return; wendeAn(pfadB.get(stufePfadB)); stufePfadB++; }
-    public void upgradeC() { if (!kannUpgradeC()) return; wendeAn(pfadC.get(stufePfadC)); stufePfadC++; }
+    public void upgradeA() {
+        if (!kannUpgradeA()) return;
+        wendeAn(pfadA.get(stufePfadA));
+        investiertesGeld += pfadA.get(stufePfadA).kosten; // NEU
+        stufePfadA++;
+    }
+
+    public void upgradeB() {
+        if (!kannUpgradeB()) return;
+        wendeAn(pfadB.get(stufePfadB));
+        investiertesGeld += pfadB.get(stufePfadB).kosten; // NEU
+        stufePfadB++;
+    }
+
+    public void upgradeC() {
+        if (!kannUpgradeC()) return;
+        wendeAn(pfadC.get(stufePfadC));
+        investiertesGeld += pfadC.get(stufePfadC).kosten; // NEU
+        stufePfadC++;
+    }
 
     private void wendeAn(LehrerUpgrade u) {
-        range       += u.rangeDelta;
-        shootDelay  += u.shootDelayDelta;
-        damage      += u.damageDelta;
+        range += u.rangeDelta;
+        shootDelay += u.shootDelayDelta;
+        damage += u.damageDelta;
         multiTarget += u.multiTargetDelta;
         if (u.spezialProjektil) spezialProjektil = true;
         if (shootDelay < 0.1) shootDelay = 0.1;
@@ -161,26 +209,86 @@ public class LehrerComponent extends Component {
     // KOSTEN & NAMEN
     // ============================================================
 
-    public int    kostenA() { return !kannUpgradeA() || stufePfadA >= pfadA.size() ? -1 : pfadA.get(stufePfadA).kosten; }
-    public int    kostenB() { return !kannUpgradeB() || stufePfadB >= pfadB.size() ? -1 : pfadB.get(stufePfadB).kosten; }
-    public int    kostenC() { return !kannUpgradeC() || stufePfadC >= pfadC.size() ? -1 : pfadC.get(stufePfadC).kosten; }
+    public int kostenA() {
+        return !kannUpgradeA() || stufePfadA >= pfadA.size() ? -1 : pfadA.get(stufePfadA).kosten;
+    }
 
-    public String nameA()   { return stufePfadA >= pfadA.size() ? "MAX" : pfadA.get(stufePfadA).name; }
-    public String nameB()   { return stufePfadB >= pfadB.size() ? "MAX" : pfadB.get(stufePfadB).name; }
-    public String nameC()   { return stufePfadC >= pfadC.size() ? "MAX" : pfadC.get(stufePfadC).name; }
+    public int kostenB() {
+        return !kannUpgradeB() || stufePfadB >= pfadB.size() ? -1 : pfadB.get(stufePfadB).kosten;
+    }
+
+    public int kostenC() {
+        return !kannUpgradeC() || stufePfadC >= pfadC.size() ? -1 : pfadC.get(stufePfadC).kosten;
+    }
+
+    public String nameA() {
+        return stufePfadA >= pfadA.size() ? "MAX" : pfadA.get(stufePfadA).name;
+    }
+
+    public String nameB() {
+        return stufePfadB >= pfadB.size() ? "MAX" : pfadB.get(stufePfadB).name;
+    }
+
+    public String nameC() {
+        return stufePfadC >= pfadC.size() ? "MAX" : pfadC.get(stufePfadC).name;
+    }
 
     // ============================================================
     // GETTERS
     // ============================================================
 
-    public int     getLehrerTyp()        { return lehrerTyp; }
-    public double  getRange()            { return range; }
-    public double  getShootDelay()       { return shootDelay; }
-    public int     getDamage()           { return damage; }
-    public int     getMultiTarget()      { return multiTarget; }
-    public boolean isSpezialProjektil()  { return spezialProjektil; }
-    public int     getStufePfadA()       { return stufePfadA; }
-    public int     getStufePfadB()       { return stufePfadB; }
-    public int     getStufePfadC()       { return stufePfadC; }
-    public String  getUpgradeStatus()    { return stufePfadA + "-" + stufePfadB + "-" + stufePfadC; }
+    public int getLehrerTyp() {
+        return lehrerTyp;
+    }
+
+    public double getRange() {
+        return range;
+    }
+
+    public double getShootDelay() {
+        return shootDelay;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    public int getMultiTarget() {
+        return multiTarget;
+    }
+
+    public boolean isSpezialProjektil() {
+        return spezialProjektil;
+    }
+
+    public int getStufePfadA() {
+        return stufePfadA;
+    }
+
+    public int getStufePfadB() {
+        return stufePfadB;
+    }
+
+    public int getStufePfadC() {
+        return stufePfadC;
+    }
+
+    public String getUpgradeStatus() {
+        return stufePfadA + "-" + stufePfadB + "-" + stufePfadC;
+    }
+
+    public String getProjektilTyp() {
+        // Prüfen ob der Skin für diesen Lehrertyp (0, 1, 2) aktiv ist
+        boolean skinAktiv = (SaveData.aktiverSkin[lehrerTyp] == 1);
+
+        switch (lehrerTyp) {
+            case 1: // Feichtner (Hat noch keine eigene Skin-Waffe, bleibt bei Potion)
+                return "ProjektilPotion";
+            case 2: // Winkler
+                return skinAktiv ? "ProjektilMinecraft" : "ProjektilFloppy";
+            case 0: // Groebl
+            default:
+                return skinAktiv ? "ProjektilGolfball" : "ProjektilBoomerang";
+        }
+    }
 }

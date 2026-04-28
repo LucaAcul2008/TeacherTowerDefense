@@ -20,65 +20,65 @@ public class RoundManager {
     static {
         // Runde 1 – nur Erstklässler
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP1, 8, 1.5)
+                new SpawnGruppe(SchuelerTyp.TYP1, 8, 0.8)
         ));
 
         // Runde 2 – Erst- und Zweitklässler
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP1, 5, 1.5),
-                new SpawnGruppe(SchuelerTyp.TYP2, 5, 1.5)
+                new SpawnGruppe(SchuelerTyp.TYP1, 5, 0.8),
+                new SpawnGruppe(SchuelerTyp.TYP2, 5, 0.8)
         ));
 
         // Runde 3 – bis Drittklässler
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP2, 5, 1.5),
-                new SpawnGruppe(SchuelerTyp.TYP3, 5, 1.5)
+                new SpawnGruppe(SchuelerTyp.TYP2, 5, 0.8),
+                new SpawnGruppe(SchuelerTyp.TYP3, 5, 0.8)
         ));
 
-        // Runde 4 – Viertklässler tauchen auf
+        // Runde 2 – Viertklässler tauchen auf
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP2, 4, 1.5),
-                new SpawnGruppe(SchuelerTyp.TYP3, 4, 1.5),
-                new SpawnGruppe(SchuelerTyp.TYP4, 3, 1.5)
+                new SpawnGruppe(SchuelerTyp.TYP2, 2, 0.8),
+                new SpawnGruppe(SchuelerTyp.TYP3, 2, 0.8),
+                new SpawnGruppe(SchuelerTyp.TYP2, 3, 0.8)
         ));
 
         // Runde 5 – erste Fünftklässler (mittelgroß)
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP3, 5, 1.5),
+                new SpawnGruppe(SchuelerTyp.TYP3, 5, 0.8),
                 new SpawnGruppe(SchuelerTyp.TYP5, 3, 2.0)
         ));
 
         // Runde 6 – Sechstklässler
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP4, 5, 1.5),
-                new SpawnGruppe(SchuelerTyp.TYP5, 3, 2.0),
-                new SpawnGruppe(SchuelerTyp.TYP6, 2, 2.5)
+                new SpawnGruppe(SchuelerTyp.TYP2, 5, 0.8),
+                new SpawnGruppe(SchuelerTyp.TYP5, 3, 1.0),
+                new SpawnGruppe(SchuelerTyp.TYP6, 1, 1.5)
         ));
 
         // Runde 7 – erster Maturant (groß!)
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP5, 4, 2.0),
-                new SpawnGruppe(SchuelerTyp.TYP6, 3, 2.0),
+                new SpawnGruppe(SchuelerTyp.TYP5, 2, 1.0),
+                new SpawnGruppe(SchuelerTyp.TYP6, 3, 1.0),
                 new SpawnGruppe(SchuelerTyp.TYP7, 1, 3.0)
         ));
 
         // Runde 8 – mehrere Maturanten
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP6, 4, 2.0),
+                new SpawnGruppe(SchuelerTyp.TYP6, 2, 1.0),
                 new SpawnGruppe(SchuelerTyp.TYP7, 3, 3.0)
         ));
 
         // Runde 9 – erster Schulleiter
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP6, 3, 2.0),
+                new SpawnGruppe(SchuelerTyp.TYP6, 3, 1.0),
                 new SpawnGruppe(SchuelerTyp.TYP7, 3, 3.0),
-                new SpawnGruppe(SchuelerTyp.TYP8, 1, 4.0)
+                new SpawnGruppe(SchuelerTyp.TYP8, 1, 2.0)
         ));
 
         // Runde 10 – Boss-Runde
         RUNDEN.add(List.of(
-                new SpawnGruppe(SchuelerTyp.TYP7, 4, 2.5),
-                new SpawnGruppe(SchuelerTyp.TYP8, 3, 4.0)
+                new SpawnGruppe(SchuelerTyp.TYP7, 2, 1.5),
+                new SpawnGruppe(SchuelerTyp.TYP8, 3, 2.0)
         ));
     }
 

@@ -84,8 +84,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         GameConfig.speedMulti = 1.0;
 
-
-
         roundManager = new RoundManager();
         roundManager.setOnRundeEnde(() -> {
             FXGL.set("runde", roundManager.getAktuelleRundeAnzeige());
@@ -102,6 +100,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
             } else {
                 aktualisiereStartButton(true);
             }
+            SaveData.muenzen += 10;
+            SaveData.speichern();
         });
 
         // Game Over wenn Leben = 0
@@ -227,7 +227,11 @@ public class TeacherTowerDefenseApp extends GameApplication {
         shopIcon1.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer1", mx-24, my-24); FXGL.inc("geld", -100); }
+                if (!kollidiert(mx, my) && mx < 960) {
+                    Entity l = FXGL.spawn("Lehrer1", mx-24, my-24);
+                    l.getComponent(LehrerComponent.class).setBaseKosten(100); // NEU
+                    FXGL.inc("geld", -100);
+                }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
             }
             shopIcon1.setTranslateX(sx); shopIcon1.setTranslateY(sy);
@@ -246,7 +250,11 @@ public class TeacherTowerDefenseApp extends GameApplication {
         shopIcon2.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer2", mx-24, my-24); FXGL.inc("geld", -150); }
+                if (!kollidiert(mx, my) && mx < 960) {
+                    Entity l = FXGL.spawn("Lehrer2", mx-24, my-24);
+                    l.getComponent(LehrerComponent.class).setBaseKosten(150); // NEU
+                    FXGL.inc("geld", -150);
+                }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
             }
             shopIcon2.setTranslateX(sx2); shopIcon2.setTranslateY(sy2);
@@ -265,7 +273,11 @@ public class TeacherTowerDefenseApp extends GameApplication {
         shopIcon3.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                if (!kollidiert(mx, my) && mx < 960) { FXGL.spawn("Lehrer3", mx-24, my-24); FXGL.inc("geld", -125); }
+                if (!kollidiert(mx, my) && mx < 960) {
+                    Entity l = FXGL.spawn("Lehrer3", mx-24, my-24);
+                    l.getComponent(LehrerComponent.class).setBaseKosten(125); // NEU
+                    FXGL.inc("geld", -125);
+                }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
             }
             shopIcon3.setTranslateX(sx3); shopIcon3.setTranslateY(sy3);
@@ -373,6 +385,34 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         FXGL.getGameScene().addUINodes(speedBtn, speedText);
 
+        Rectangle skinBtn = new Rectangle(100, 42, Color.web("#8e44ad"));
+        skinBtn.setTranslateX(PX + 115); skinBtn.setTranslateY(608); // Unter den Speed-Button
+        skinBtn.setArcWidth(8); skinBtn.setArcHeight(8);
+        skinBtn.setStroke(Color.web("#9b59b6")); skinBtn.setStrokeWidth(1);
+
+        Text skinText = mkText("👕 Skins", PX + 134, 634, Color.WHITE, 14, true);
+
+        Runnable openSkinMenu = () -> {
+            // Einfache FXGL MessageBox als Shop-Ersatz
+            String text = "Meta-Münzen: " + SaveData.muenzen + " 💰\n\n" +
+                    "Skins werden beim nächsten Platzieren aktiv!\n\n" +
+                    "Tippe 1: Groebl Skin kaufen/wechseln (" + SaveData.SKIN_PREISE[0] + " 💰)\n" +
+                    "Tippe 2: Feichtner Skin kaufen/wechseln (" + SaveData.SKIN_PREISE[1] + " 💰)\n" +
+                    "Tippe 3: Winkler Skin kaufen/wechseln (" + SaveData.SKIN_PREISE[2] + " 💰)\n\n" +
+                    "Möchtest du einen Skin für Lehrer 1, 2 oder 3 togglen?";
+
+            FXGL.getDialogService().showInputBox(text, input -> {
+                if (input.equals("1")) if (SaveData.kaufeSkin(0)) System.out.println("Groebl Skin aktiv!");
+                if (input.equals("2")) if (SaveData.kaufeSkin(1)) System.out.println("Feichtner Skin aktiv!");
+                if (input.equals("3")) if (SaveData.kaufeSkin(2)) System.out.println("Winkler Skin aktiv!");
+            });
+        };
+
+        skinBtn.setOnMouseClicked(e -> openSkinMenu.run());
+        skinText.setOnMouseClicked(e -> openSkinMenu.run());
+
+        FXGL.getGameScene().addUINodes(skinBtn, skinText);
+
 
         for (javafx.scene.Node node : panelNodes) FXGL.getGameScene().addUINode(node);
     }
@@ -428,6 +468,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
         aktualisierePfadBtn(btnA, labelA, kostenA, "Pfad A – Speed",      lc.nameA(), lc.kostenA(), lc.xpKostenA(), lc.istFreigeschaltetA(), lc.kannUpgradeA(), FARBE_A_DIM, FARBE_A);
         aktualisierePfadBtn(btnB, labelB, kostenB, "Pfad B – Schaden",    lc.nameB(), lc.kostenB(), lc.xpKostenB(), lc.istFreigeschaltetB(), lc.kannUpgradeB(), FARBE_B_DIM, FARBE_B);
         aktualisierePfadBtn(btnC, labelC, kostenC, "Pfad C – Reichweite", lc.nameC(), lc.kostenC(), lc.xpKostenC(), lc.istFreigeschaltetC(), lc.kannUpgradeC(), FARBE_C_DIM, FARBE_C);
+        int refund = (int) (lc.getInvestiertesGeld() * 0.75);
+        textVerkaufen.setText("🗑   Verkaufen (+" + refund + " €)");
     }
 
     private void aktualisiereDots(Circle[] dots, int stufe, boolean kannUpgrade, Color aktiv, Color inaktiv) {
@@ -497,7 +539,11 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
     private void verkaufeLehrer() {
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
-        FXGL.inc("geld", 10);
+        LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
+
+        int refund = (int) (lc.getInvestiertesGeld() * 0.75);
+        FXGL.inc("geld", refund);
+
         ausgewaehlterLehrer.removeFromWorld();
         deselect();
     }
