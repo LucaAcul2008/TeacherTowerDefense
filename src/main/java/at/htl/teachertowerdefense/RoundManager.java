@@ -35,7 +35,7 @@ public class RoundManager {
                 new SpawnGruppe(SchuelerTyp.TYP3, 5, 0.8)
         ));
 
-        // Runde 2 – Viertklässler tauchen auf
+        // Runde 4 – Viertklässler tauchen auf
         RUNDEN.add(List.of(
                 new SpawnGruppe(SchuelerTyp.TYP2, 2, 0.8),
                 new SpawnGruppe(SchuelerTyp.TYP3, 2, 0.8),

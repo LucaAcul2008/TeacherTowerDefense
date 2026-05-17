@@ -72,7 +72,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
     @Override
     protected void initGameVars(Map<String, Object> vars) {
         vars.put("leben", 20);
-        vars.put("geld",  10000);
+        vars.put("geld",  (int)(1000 * GameConfig.getStartgeldMulti())); //1000 zum testen und vorführen
         vars.put("runde", 1);
     }
 
