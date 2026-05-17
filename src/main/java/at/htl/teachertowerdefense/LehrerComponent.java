@@ -25,6 +25,7 @@ public class LehrerComponent extends Component {
     private int damage;
     private int multiTarget;
     private boolean spezialProjektil;
+    private boolean nutztSkin;
 
     private int investiertesGeld = 0;
 
@@ -49,6 +50,8 @@ public class LehrerComponent extends Component {
 
     public LehrerComponent(int lehrerTyp) {
         this.lehrerTyp = lehrerTyp;
+
+        this.nutztSkin = (SaveData.aktiverSkin[lehrerTyp] == 1);
 
         switch (lehrerTyp) {
             case 1 -> { // Feichtner – Sniper
@@ -278,17 +281,14 @@ public class LehrerComponent extends Component {
     }
 
     public String getProjektilTyp() {
-        // Prüfen ob der Skin für diesen Lehrertyp (0, 1, 2) aktiv ist
-        boolean skinAktiv = (SaveData.aktiverSkin[lehrerTyp] == 1);
-
         switch (lehrerTyp) {
-            case 1: // Feichtner (Hat noch keine eigene Skin-Waffe, bleibt bei Potion)
+            case 1: // Feichtner
                 return "ProjektilPotion";
             case 2: // Winkler
-                return skinAktiv ? "ProjektilMinecraft" : "ProjektilFloppy";
+                return nutztSkin ? "ProjektilMusicdisk" : "ProjektilFloppy";
             case 0: // Groebl
             default:
-                return skinAktiv ? "ProjektilGolfball" : "ProjektilBoomerang";
+                return nutztSkin ? "ProjektilGolfball" : "ProjektilBoomerang";
         }
     }
 }

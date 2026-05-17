@@ -262,15 +262,15 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
                 .build();
     }
 
-    @Spawns("ProjektilMinecraft")
-    public Entity newProjektilMusicdisk(SpawnData data) {
+    @Spawns("ProjektilMusikdisk")
+    public Entity newProjektilMusikdisk(SpawnData data) {
         Entity target = data.get("target");
         int damage = data.hasKey("damage") ? (int) data.get("damage") : 1;
 
         javafx.scene.Node view;
         try {
-            // Lädt DEIN neues Bild: projektil_musicdisk.png
-            javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(FXGL.image("projektil_minecraft.png"));
+
+            javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(FXGL.image("projektil_musikdisk.png"));
             iv.setFitWidth(24); iv.setFitHeight(24);
             view = iv;
         } catch (Exception e) {
