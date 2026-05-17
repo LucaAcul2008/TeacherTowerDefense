@@ -79,7 +79,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
     @Override
     protected void initGame() {
         SaveData.laden();
-        SaveData.mapFreigeschaltet[1] = true; // TODO: entfernen wenn Map2 offiziell freigespielt werden soll
+        SaveData.mapFreigeschaltet[1] = true;
         FXGL.getGameWorld().addEntityFactory(new TeacherTowerDefenseFactory());
         FXGL.setLevelFromMap(GameConfig.getMapDatei());
 
