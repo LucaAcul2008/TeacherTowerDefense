@@ -20,7 +20,7 @@ public class SchuelerComponent extends Component {
 
     public SchuelerComponent(SchuelerTyp typ) {
         this.typ = typ;
-        this.hp  = typ.maxHp;
+        this.hp  = (int)(typ.maxHp * GameConfig.getSchuelerHpMulti());
     }
 
     public void damage(int amount) {
