@@ -39,7 +39,7 @@ public class RoundManager {
         RUNDEN.add(List.of(
                 new SpawnGruppe(SchuelerTyp.TYP2, 2, 0.8),
                 new SpawnGruppe(SchuelerTyp.TYP3, 2, 0.8),
-                new SpawnGruppe(SchuelerTyp.TYP2, 3, 0.8)
+                new SpawnGruppe(SchuelerTyp.TYP4, 3, 0.8)
         ));
 
         // Runde 5 – erste Fünftklässler (mittelgroß)

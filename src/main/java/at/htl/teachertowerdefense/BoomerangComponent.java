@@ -19,6 +19,7 @@ public class BoomerangComponent extends Component {
     private Point2D turretPos;   // Ursprungsposition zum Zurückfliegen
     private boolean rueckweg = false;
     private boolean hatZielGetroffen = false;
+    private final java.util.Set<Entity> rueckwegGetroffen = new java.util.HashSet<>();
 
     public BoomerangComponent(Entity target, int damage, Point2D turretPos) {
         this.target     = target;
@@ -55,10 +56,11 @@ public class BoomerangComponent extends Component {
 
             for (Entity s : FXGL.getGameWorld().getEntitiesByType(EntityType.SCHUELER)) {
                 if (s == target) continue;
-                // Auch auf dem Rückweg auf Brusthöhe treffen
+                if (rueckwegGetroffen.contains(s)) continue;
                 Point2D brustS = new Point2D(s.getCenter().getX(), s.getY() - 10);
                 if (brustS.distance(pos) < 22) {
                     s.getComponent(SchuelerComponent.class).damage(damage);
+                    rueckwegGetroffen.add(s);
                 }
             }
 
