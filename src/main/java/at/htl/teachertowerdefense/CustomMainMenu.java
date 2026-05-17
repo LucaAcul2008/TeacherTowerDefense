@@ -78,60 +78,77 @@ public class CustomMainMenu extends FXGLMenu {
         getContentRoot().getChildren().addAll(muenzenBg, muenzenText);
 
         // ── SKIN SHOP (links oben, unter Münzen) ─────────────────
-        Rectangle skinBg = new Rectangle(320, 110, Color.color(0,0,0,0.65));
-        skinBg.setArcWidth(10); skinBg.setArcHeight(10);
-        skinBg.setTranslateX(20); skinBg.setTranslateY(75);  // unter Münzen-Anzeige
+        final double SKIN_X = 20, SKIN_Y = 75;
+        final double SKIN_W = 340, SKIN_H = 160;
+        final double BTN_W = 96, BTN_H = 44, BTN_GAP = 8;
 
-        Text skinTitel = mkText("🎨 LEHRER SKINS", 30, 97,
-                Color.web("#9b59b6"), 12, true);
+        Rectangle skinBg = new Rectangle(SKIN_W, SKIN_H, Color.color(0, 0, 0, 0.70));
+        skinBg.setArcWidth(10); skinBg.setArcHeight(10);
+        skinBg.setTranslateX(SKIN_X); skinBg.setTranslateY(SKIN_Y);
+        skinBg.setStroke(Color.web("#5a2d82")); skinBg.setStrokeWidth(1.5);
+
+        Text skinTitel = mkText("🎨  LEHRER SKINS", SKIN_X + 10, SKIN_Y + 22,
+                Color.web("#c39bd3"), 12, true);
+
+        // Hintergrund zuerst – Buttons rendern darüber
+        getContentRoot().getChildren().addAll(skinBg, skinTitel);
 
         String[] skinNamen = { "Groebl Alt", "Feichtner Alt", "Winkler Alt" };
         int[] skinPreise = SaveData.SKIN_PREISE;
-
-        getContentRoot().getChildren().addAll(skinBg, skinTitel);
 
         for (int i = 0; i < 3; i++) {
             final int idx = i;
             boolean gekauft = SaveData.skinFreigeschaltet[i][1];
             boolean aktiv   = SaveData.aktiverSkin[i] == 1;
 
-            Rectangle skinBtn = new Rectangle(90, 36,
-                    aktiv ? Color.web("#6c3483")
-                            : (gekauft ? Color.web("#2c3e7a")
-                            : (SaveData.muenzen >= skinPreise[i]
-                            ? Color.web("#1a3a1a")
-                            : Color.color(0.1, 0.1, 0.1, 0.9))));
-            skinBtn.setArcWidth(6); skinBtn.setArcHeight(6);
-            skinBtn.setTranslateX(24 + i * 100); skinBtn.setTranslateY(107);
-            skinBtn.setStroke(Color.web("#9b59b6")); skinBtn.setStrokeWidth(1);
+            double bx = SKIN_X + 8 + i * (BTN_W + BTN_GAP);
+
+            // Skin-Name über Button
+            Text skinName = mkText(skinNamen[i], bx + 4, SKIN_Y + 40,
+                    Color.LIGHTGRAY, 10, false);
+
+            // Button-Farbe je nach Status
+            Color btnFarbe = aktiv                            ? Color.web("#6c3483")
+                    : gekauft                                 ? Color.web("#1f3a8a")
+                    : SaveData.muenzen >= skinPreise[i]       ? Color.web("#1a3a1a")
+                    :                                           Color.color(0.12, 0.12, 0.12, 0.9);
+
+            Rectangle skinBtn = new Rectangle(BTN_W, BTN_H, btnFarbe);
+            skinBtn.setArcWidth(8); skinBtn.setArcHeight(8);
+            skinBtn.setTranslateX(bx); skinBtn.setTranslateY(SKIN_Y + 46);
+            skinBtn.setStroke(aktiv ? Color.web("#9b59b6") : Color.web("#555577"));
+            skinBtn.setStrokeWidth(aktiv ? 2.0 : 1.0);
+
+            // Label im Button
+            String btnLabel = gekauft ? (aktiv ? "✓  AN" : "○  AUS") : skinPreise[i] + " 💰";
+            Text skinBtnText = mkText(btnLabel, bx + 12, SKIN_Y + 74, Color.WHITE, 11, true);
+
+            // Status-Text unter Button
+            String statusLabel = aktiv ? "● aktiv" : gekauft ? "○ inaktiv" : "nicht gekauft";
+            Color  statusFarbe = aktiv ? Color.web("#9b59b6") : gekauft ? Color.web("#3498db") : Color.web("#666688");
+            Text statusText = mkText(statusLabel, bx + 4, SKIN_Y + 108, statusFarbe, 9, false);
 
             skinBtn.setOnMouseEntered(e -> {
                 if (!SaveData.skinFreigeschaltet[idx][1] && SaveData.muenzen < SaveData.SKIN_PREISE[idx]) return;
-                skinBtn.setOpacity(0.8);
+                skinBtn.setOpacity(0.75);
             });
             skinBtn.setOnMouseExited(e -> skinBtn.setOpacity(1.0));
-
-            String btnLabel = gekauft
-                    ? (aktiv ? "✓ AN" : "○ AUS")
-                    : skinPreise[i] + " 💰";
-            Text skinBtnText = mkText(btnLabel,
-                    32 + i * 100, 130, Color.WHITE, 11, true);
-
-            Text skinName = mkText(skinNamen[i],
-                    24 + i * 100, 147, Color.LIGHTGRAY, 9, false);
 
             skinBtn.setOnMouseClicked(e -> {
                 if (SaveData.kaufeSkin(idx)) {
                     muenzenText.setText("💰  " + SaveData.muenzen + " Münzen");
                     boolean jetzt = SaveData.aktiverSkin[idx] == 1;
-                    skinBtn.setFill(jetzt ? Color.web("#6c3483")
-                            : Color.color(0.15, 0.15, 0.25, 0.9));
-                    skinBtnText.setText(jetzt ? "✓ AN" : "○ AUS");
+                    skinBtn.setFill(jetzt ? Color.web("#6c3483") : Color.web("#1f3a8a"));
+                    skinBtn.setStroke(jetzt ? Color.web("#9b59b6") : Color.web("#555577"));
+                    skinBtn.setStrokeWidth(jetzt ? 2.0 : 1.0);
+                    skinBtnText.setText(jetzt ? "✓  AN" : "○  AUS");
+                    statusText.setText(jetzt ? "● aktiv" : "○ inaktiv");
+                    statusText.setFill(jetzt ? Color.web("#9b59b6") : Color.web("#3498db"));
                 }
             });
             skinBtnText.setOnMouseClicked(skinBtn.getOnMouseClicked());
 
-            getContentRoot().getChildren().addAll(skinBtn, skinBtnText, skinName);
+            getContentRoot().getChildren().addAll(skinName, skinBtn, skinBtnText, statusText);
         }
 
 

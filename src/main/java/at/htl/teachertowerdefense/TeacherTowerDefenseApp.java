@@ -354,16 +354,68 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         setzeUpgradePanelSichtbar(false);
 
-        // === START BUTTON ===
-        startButton = new Rectangle(100, 42, Color.web("#27ae60"));
-        startButton.setTranslateX(PX); startButton.setTranslateY(560);
-        startButtonText = mkText("▶  START", PX + 10, 588, Color.WHITE, 14, true);
+        // === START + SPEED BUTTONS ===
+        startButton = new Rectangle(110, 40, Color.web("#27ae60"));
+        startButton.setArcWidth(8); startButton.setArcHeight(8);
+        startButton.setTranslateX(PX); startButton.setTranslateY(540);
+        startButtonText = mkText("▶  START", PX + 12, 567, Color.WHITE, 13, true);
         startButton.setOnMouseClicked(e -> starteRunde());
         startButtonText.setOnMouseClicked(e -> starteRunde());
         startButton.setOnMouseEntered(e -> { if (startButton.getFill().equals(Color.web("#27ae60"))) startButton.setFill(Color.web("#2ecc71")); });
         startButton.setOnMouseExited(e  -> { if (startButton.getFill().equals(Color.web("#2ecc71"))) startButton.setFill(Color.web("#27ae60")); });
 
-        Text settingsHint = mkText("⚙  ESC = Einstellungen", PX+52, 626, Color.web("#555577"), 10, false);
+        Rectangle speedBtn = new Rectangle(100, 40, Color.web("#1a1a2e"));
+        speedBtn.setArcWidth(8); speedBtn.setArcHeight(8);
+        speedBtn.setTranslateX(PX + 120); speedBtn.setTranslateY(540);
+        speedBtn.setStroke(Color.web("#333355")); speedBtn.setStrokeWidth(1);
+        Text speedText = mkText("▶▶  1x", PX + 138, 567, Color.WHITE, 13, true);
+        speedBtn.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
+        speedText.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
+
+        // === SKIN BEREICH ===
+        Line skinTrenn = new Line(965, 588, 1195, 588);
+        skinTrenn.setStroke(Color.web("#333355")); skinTrenn.setStrokeWidth(1);
+
+        Text skinLabel = mkText("🎨 SKINS:", PX + 4, 610, Color.web("#9b59b6"), 10, true);
+
+        String[] skinKuerzel = { "GR", "FE", "WI" };
+        Rectangle[] skinBtns = new Rectangle[3];
+        Text[] skinTexts = new Text[3];
+
+        for (int i = 0; i < 3; i++) {
+            final int idx = i;
+            boolean aktiv   = SaveData.aktiverSkin[i] == 1;
+            boolean gekauft = SaveData.skinFreigeschaltet[i][1];
+            double bx = PX + 70 + i * 46;
+
+            Rectangle sb = new Rectangle(40, 26,
+                    aktiv   ? Color.web("#6c3483")
+                            : gekauft ? Color.web("#1f3a8a")
+                            :           Color.color(0.12, 0.12, 0.12, 0.9));
+            sb.setArcWidth(5); sb.setArcHeight(5);
+            sb.setTranslateX(bx); sb.setTranslateY(595);
+            sb.setStroke(aktiv ? Color.web("#9b59b6") : Color.web("#444466"));
+            sb.setStrokeWidth(aktiv ? 1.5 : 1.0);
+            skinBtns[i] = sb;
+
+            Text st = mkText(skinKuerzel[i], bx + 9, 614, Color.WHITE, 9, true);
+            skinTexts[i] = st;
+
+            sb.setOnMouseClicked(e -> {
+                if (SaveData.kaufeSkin(idx)) {
+                    for (int j = 0; j < 3; j++) {
+                        boolean a = SaveData.aktiverSkin[j] == 1;
+                        boolean g = SaveData.skinFreigeschaltet[j][1];
+                        skinBtns[j].setFill(a ? Color.web("#6c3483") : g ? Color.web("#1f3a8a") : Color.color(0.12, 0.12, 0.12, 0.9));
+                        skinBtns[j].setStroke(a ? Color.web("#9b59b6") : Color.web("#444466"));
+                        skinBtns[j].setStrokeWidth(a ? 1.5 : 1.0);
+                    }
+                }
+            });
+            st.setOnMouseClicked(sb.getOnMouseClicked());
+        }
+
+        Text settingsHint = mkText("⚙  ESC = Einstellungen", PX + 4, 637, Color.web("#555577"), 9, false);
 
         FXGL.getGameScene().addUINodes(
                 shopPanel, shopTitel, shopTrenn,
@@ -371,54 +423,18 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 shopIcon2, shopName2, shopPreis2,
                 shopIcon3, shopName3, shopPreis3,
                 shopTrenn2,
-                startButton, startButtonText, settingsHint,
+                startButton, startButtonText,
+                speedBtn, speedText,
+                skinTrenn, skinLabel,
+                skinBtns[0], skinTexts[0],
+                skinBtns[1], skinTexts[1],
+                skinBtns[2], skinTexts[2],
+                settingsHint,
                 bgPanel, textLeben, textGeld, textRunde
         );
-        // === SPEED BUTTON ===
-        Rectangle speedBtn = new Rectangle(100, 42, Color.web("#1a1a2e"));
-        speedBtn.setTranslateX(PX + 115); speedBtn.setTranslateY(560);
-        speedBtn.setArcWidth(8); speedBtn.setArcHeight(8);
-        speedBtn.setStroke(Color.web("#333355")); speedBtn.setStrokeWidth(1);
-
-        Text speedText = mkText("▶▶  1x", PX + 134, 588, Color.WHITE, 14, true);
-
-        speedBtn.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
-        speedText.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
-
-        FXGL.getGameScene().addUINodes(speedBtn, speedText);
-
-        Rectangle skinBtn = new Rectangle(100, 42, Color.web("#8e44ad"));
-        skinBtn.setTranslateX(PX + 115); skinBtn.setTranslateY(608); // Unter den Speed-Button
-        skinBtn.setArcWidth(8); skinBtn.setArcHeight(8);
-        skinBtn.setStroke(Color.web("#9b59b6")); skinBtn.setStrokeWidth(1);
-
-        Text skinText = mkText("👕 Skins", PX + 134, 634, Color.WHITE, 14, true);
-
-        Runnable openSkinMenu = () -> {
-            // Einfache FXGL MessageBox als Shop-Ersatz
-            String text = "Meta-Münzen: " + SaveData.muenzen + " 💰\n\n" +
-                    "Skins werden beim nächsten Platzieren aktiv!\n\n" +
-                    "Tippe 1: Groebl Skin kaufen/wechseln (" + SaveData.SKIN_PREISE[0] + " 💰)\n" +
-                    "Tippe 2: Feichtner Skin kaufen/wechseln (" + SaveData.SKIN_PREISE[1] + " 💰)\n" +
-                    "Tippe 3: Winkler Skin kaufen/wechseln (" + SaveData.SKIN_PREISE[2] + " 💰)\n\n" +
-                    "Möchtest du einen Skin für Lehrer 1, 2 oder 3 togglen?";
-
-            FXGL.getDialogService().showInputBox(text, input -> {
-                if (input.equals("1")) if (SaveData.kaufeSkin(0)) System.out.println("Groebl Skin aktiv!");
-                if (input.equals("2")) if (SaveData.kaufeSkin(1)) System.out.println("Feichtner Skin aktiv!");
-                if (input.equals("3")) if (SaveData.kaufeSkin(2)) System.out.println("Winkler Skin aktiv!");
-            });
-        };
-
-        skinBtn.setOnMouseClicked(e -> openSkinMenu.run());
-        skinText.setOnMouseClicked(e -> openSkinMenu.run());
-
-        FXGL.getGameScene().addUINodes(skinBtn, skinText);
-
 
         for (javafx.scene.Node node : panelNodes) FXGL.getGameScene().addUINode(node);
     }
-
     // ============================================================
     // UPGRADE PANEL
     // ============================================================
