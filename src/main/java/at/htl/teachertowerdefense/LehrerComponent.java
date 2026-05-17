@@ -225,15 +225,42 @@ public class LehrerComponent extends Component {
     }
 
     public String nameA() {
-        return stufePfadA >= pfadA.size() ? "MAX" : pfadA.get(stufePfadA).name;
+        if (stufePfadA >= pfadA.size()) return "MAX";
+        if (nutztSkin) {
+            String[] namen = switch (lehrerTyp) {
+                case 0 -> LehrerUpgradePfade.LEHRER1_SKIN_PFAD_A_NAMEN;
+                case 2 -> LehrerUpgradePfade.LEHRER3_SKIN_PFAD_A_NAMEN;
+                default -> null;
+            };
+            if (namen != null && stufePfadA < namen.length) return namen[stufePfadA];
+        }
+        return pfadA.get(stufePfadA).name;
     }
 
     public String nameB() {
-        return stufePfadB >= pfadB.size() ? "MAX" : pfadB.get(stufePfadB).name;
+        if (stufePfadB >= pfadB.size()) return "MAX";
+        if (nutztSkin) {
+            String[] namen = switch (lehrerTyp) {
+                case 0 -> LehrerUpgradePfade.LEHRER1_SKIN_PFAD_B_NAMEN;
+                case 2 -> LehrerUpgradePfade.LEHRER3_SKIN_PFAD_B_NAMEN;
+                default -> null;
+            };
+            if (namen != null && stufePfadB < namen.length) return namen[stufePfadB];
+        }
+        return pfadB.get(stufePfadB).name;
     }
 
     public String nameC() {
-        return stufePfadC >= pfadC.size() ? "MAX" : pfadC.get(stufePfadC).name;
+        if (stufePfadC >= pfadC.size()) return "MAX";
+        if (nutztSkin) {
+            String[] namen = switch (lehrerTyp) {
+                case 0 -> LehrerUpgradePfade.LEHRER1_SKIN_PFAD_C_NAMEN;
+                case 2 -> LehrerUpgradePfade.LEHRER3_SKIN_PFAD_C_NAMEN;
+                default -> null;
+            };
+            if (namen != null && stufePfadC < namen.length) return namen[stufePfadC];
+        }
+        return pfadC.get(stufePfadC).name;
     }
 
     // ============================================================

@@ -472,7 +472,15 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         // XP pro Lehrer-Typ anzeigen
         int lehrerIdx = lc.getLehrerTyp();
-        upgradeTitel.setText("Lehrer  |  ⭐ " + SaveData.getXP(lehrerIdx) + " XP");
+
+        // Aktives Projektil anzeigen (ändert sich mit Skin)
+        String projektil = switch (lehrerIdx) {
+            case 0 -> lc.getProjektilTyp().equals("ProjektilGolfball") ? "Golfball" : "Boomerang";
+            case 1 -> "Potion";
+            case 2 -> lc.getProjektilTyp().equals("ProjektilMusikdisk") ? "Musik-Disk" : "Floppy";
+            default -> "";
+        };
+        upgradeTitel.setText(projektil + "  |  ⭐ " + SaveData.getXP(lehrerIdx) + " XP");
 
         statRange.setText(String.format("🎯  %.0fpx", lc.getRange()));
         statDamage.setText(String.format("⚔  %d Schaden", lc.getDamage()));
@@ -483,9 +491,16 @@ public class TeacherTowerDefenseApp extends GameApplication {
         aktualisiereDots(dotsB, lc.getStufePfadB(), lc.kannUpgradeB(), FARBE_B, FARBE_B_DIM);
         aktualisiereDots(dotsC, lc.getStufePfadC(), lc.kannUpgradeC(), FARBE_C, FARBE_C_DIM);
 
-        aktualisierePfadBtn(btnA, labelA, kostenA, "Pfad A – Speed",      lc.nameA(), lc.kostenA(), lc.xpKostenA(), lc.istFreigeschaltetA(), lc.kannUpgradeA(), FARBE_A_DIM, FARBE_A);
-        aktualisierePfadBtn(btnB, labelB, kostenB, "Pfad B – Schaden",    lc.nameB(), lc.kostenB(), lc.xpKostenB(), lc.istFreigeschaltetB(), lc.kannUpgradeB(), FARBE_B_DIM, FARBE_B);
-        aktualisierePfadBtn(btnC, labelC, kostenC, "Pfad C – Reichweite", lc.nameC(), lc.kostenC(), lc.xpKostenC(), lc.istFreigeschaltetC(), lc.kannUpgradeC(), FARBE_C_DIM, FARBE_C);
+        // Pfad-Beschreibungen je nach Lehrer-Typ korrekt
+        String[] pfadNamen = switch (lehrerIdx) {
+            case 1  -> new String[]{ "Pfad A – Radius",  "Pfad B – Schaden", "Pfad C – Speed"      };
+            case 2  -> new String[]{ "Pfad A – Ziele",   "Pfad B – Speed",   "Pfad C – Reichweite" };
+            default -> new String[]{ "Pfad A – Speed",   "Pfad B – Schaden", "Pfad C – Reichweite" };
+        };
+
+        aktualisierePfadBtn(btnA, labelA, kostenA, pfadNamen[0], lc.nameA(), lc.kostenA(), lc.xpKostenA(), lc.istFreigeschaltetA(), lc.kannUpgradeA(), FARBE_A_DIM, FARBE_A);
+        aktualisierePfadBtn(btnB, labelB, kostenB, pfadNamen[1], lc.nameB(), lc.kostenB(), lc.xpKostenB(), lc.istFreigeschaltetB(), lc.kannUpgradeB(), FARBE_B_DIM, FARBE_B);
+        aktualisierePfadBtn(btnC, labelC, kostenC, pfadNamen[2], lc.nameC(), lc.kostenC(), lc.xpKostenC(), lc.istFreigeschaltetC(), lc.kannUpgradeC(), FARBE_C_DIM, FARBE_C);
         int refund = (int) (lc.getInvestiertesGeld() * 0.75);
         textVerkaufen.setText("🗑   Verkaufen (+" + refund + " €)");
     }

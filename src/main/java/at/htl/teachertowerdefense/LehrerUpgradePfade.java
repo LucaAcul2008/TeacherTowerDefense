@@ -109,4 +109,26 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.damage("Bootsektor-Zerstörer",   420,  280,  2),
             new LehrerUpgrade   ("System-Crash",            800,  600,  30, -0.05, 2, 1, false)
     );
+
+    // ── GROEBL MIT GOLFBALL SKIN – alternative Upgrade-Namen ────
+    public static final String[] LEHRER1_SKIN_PFAD_A_NAMEN = {
+            "Schnellerer Schwung", "Turbo-Drive", "Blitz-Drive", "Schallmauer-Eagle", "MEGA-Eagle"
+    };
+    public static final String[] LEHRER1_SKIN_PFAD_B_NAMEN = {
+            "Frischer Abschlag", "Starker Drive", "Eisenharter Drive", "Titan-Driver", "Nuklearer Eagle"
+    };
+    public static final String[] LEHRER1_SKIN_PFAD_C_NAMEN = {
+            "Längerer Schläger", "Doppel-Abschlag", "Weitschlag-Training", "Golf-Salve", "360° Golfsturm"
+    };
+
+    // ── WINKLER MIT MUSIKDISK SKIN – alternative Upgrade-Namen ──
+    public static final String[] LEHRER3_SKIN_PFAD_A_NAMEN = {
+            "Doppel-Vinyl", "Triple-Mix", "Remix-Angriff", "Cluster-Beat", "Beat-Sturm"
+    };
+    public static final String[] LEHRER3_SKIN_PFAD_B_NAMEN = {
+            "Schneller Beat", "Tempo-Mix", "Bassboost", "Hyperspeed-Mix", "Ultrabeat-Transfer"
+    };
+    public static final String[] LEHRER3_SKIN_PFAD_C_NAMEN = {
+            "Weitwurf-Rhythmus", "Bassline-Schaden", "Extended Rhythm", "Bassline-Zerstörer", "Beat-Crash"
+    };
 }
