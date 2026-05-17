@@ -168,7 +168,12 @@ public class CustomMainMenu extends FXGLMenu {
                     Color.web("#f1c40f"), 16, false);
 
             // Gesperrt-Overlay
-            Text lockText = frei ? new Text("") : mkText("🔒 Gesperrt", 0, 0, Color.web("#888888"), 11, false);
+            Text lockText;
+            if (i == 2) {
+                lockText = mkText("🚧 In Bearbeitung", 0, 0, Color.web("#e67e22"), 11, false);
+            } else {
+                lockText = frei ? new Text("") : mkText("🔒 Gesperrt", 0, 0, Color.web("#888888"), 11, false);
+            }
 
             VBox karte = new VBox(8, name, sterneText, lockText);
             karte.setAlignment(Pos.CENTER);
@@ -177,7 +182,7 @@ public class CustomMainMenu extends FXGLMenu {
             karte.setTranslateY(H - 260);
 
             // Klick
-            if (frei) {
+            if (frei && i != 2) {
                 border.setOnMouseClicked(e -> waehleMap(idx));
                 karte.setOnMouseClicked(e -> waehleMap(idx));
                 border.setOnMouseEntered(e -> { if (idx != selectedMap) border.setFill(Color.color(0.2,0.2,0.35,0.9)); });
