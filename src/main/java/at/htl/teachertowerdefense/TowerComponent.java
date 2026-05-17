@@ -50,7 +50,8 @@ public class TowerComponent extends Component {
 
         if (inRange.isEmpty()) return;
 
-        inRange.sort(Comparator.comparingDouble(e -> e.distance(entity)));
+        Point2D ziel = WaypointData.getROUTE().get(WaypointData.getROUTE().size() - 1);
+        inRange.sort(Comparator.comparingDouble(e -> e.getCenter().distance(ziel)));
 
 
         String projektilTyp = "ProjektilFloppy";

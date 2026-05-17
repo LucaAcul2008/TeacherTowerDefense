@@ -112,7 +112,7 @@ public class SaveData {
     public static void mapBeendet(int mapIndex, int schwierigkeit, int belohnungMuenzen, int belohnungXP) {
         abgeschlossen[mapIndex][schwierigkeit] = true;
         muenzen += belohnungMuenzen;
-        lehrerXP[0] += belohnungXP;
+        for (int i = 0; i < lehrerXP.length; i++) lehrerXP[i] += belohnungXP;
         if (schwierigkeit == 0 && mapIndex + 1 < mapFreigeschaltet.length)
             mapFreigeschaltet[mapIndex + 1] = true;
         speichern();

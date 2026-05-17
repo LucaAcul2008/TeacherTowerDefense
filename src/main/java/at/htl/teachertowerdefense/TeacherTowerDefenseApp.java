@@ -51,6 +51,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
     private Circle[]  dotsC = new Circle[5];
     private Line[]    trennlinien = new Line[4];
     private final List<javafx.scene.Node> panelNodes = new ArrayList<>();
+    private boolean gameOverGezeigt = false;
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -106,7 +107,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         // Game Over wenn Leben = 0
         FXGL.getip("leben").addListener((obs, old, newVal) -> {
-            if (newVal.intValue() <= 0) {
+            if (newVal.intValue() <= 0 && !gameOverGezeigt) {
+                gameOverGezeigt = true;
                 FXGL.getDialogService().showMessageBox("💀 Game Over!\nDu hast verloren.", () ->
                         FXGL.getGameController().gotoMainMenu());
             }
@@ -652,8 +654,11 @@ public class TeacherTowerDefenseApp extends GameApplication {
         double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
         lehrerSchatten.setPosition(mx - 24, my - 24);
         boolean koll = kollidiert(mx, my) || mx >= 960;
-        Circle rc    = (Circle)    lehrerSchatten.getViewComponent().getChildren().get(0);
-        Rectangle bd = (Rectangle) lehrerSchatten.getViewComponent().getChildren().get(1);
+        Circle rc = lehrerSchatten.getViewComponent().getChildren().stream()
+                .filter(n -> n instanceof Circle).map(n -> (Circle) n).findFirst().orElse(null);
+        Rectangle bd = lehrerSchatten.getViewComponent().getChildren().stream()
+                .filter(n -> n instanceof Rectangle).map(n -> (Rectangle) n).findFirst().orElse(null);
+        if (rc == null || bd == null) return;
         if (koll) { bd.setFill(Color.color(1,0,0,0.5)); rc.setFill(Color.color(1,0,0,0.2)); rc.setStroke(Color.RED); }
         else       { bd.setFill(Color.color(0,0.4,1,0.5)); rc.setFill(Color.color(1,1,1,0.2)); rc.setStroke(Color.WHITE); }
     }
