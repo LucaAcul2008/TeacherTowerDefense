@@ -113,8 +113,8 @@ public class RoundManager {
 
                 FXGL.getGameTimer().runOnceAfter(() -> {
                     FXGL.spawn("Schueler",
-                            new SpawnData(WaypointData.ROUTE.get(0).getX(),
-                                          WaypointData.ROUTE.get(0).getY())
+                            new SpawnData(WaypointData.getROUTE().get(0).getX(),
+                                    WaypointData.getROUTE().get(0).getY())
                                     .put("typ", typ)
                                     .put("startWaypoint", 0)
                     );

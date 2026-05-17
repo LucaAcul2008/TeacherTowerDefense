@@ -23,7 +23,7 @@ public class SaveData {
     // -------------------------------------------------------
 
     public static void laden() {
-        muenzen = PREFS.getInt("muenzen", 500); // 500 zum Testen, danach auf 0 setzen
+        muenzen = PREFS.getInt("muenzen", 0);
         for (int i = 0; i < lehrerXP.length; i++)
             lehrerXP[i] = PREFS.getInt("xp" + i, 0);
         for (int m = 0; m < 3; m++) {

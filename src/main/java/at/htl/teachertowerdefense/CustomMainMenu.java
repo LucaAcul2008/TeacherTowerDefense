@@ -88,6 +88,8 @@ public class CustomMainMenu extends FXGLMenu {
         String[] skinNamen = { "Groebl Alt", "Feichtner Alt", "Winkler Alt" };
         int[] skinPreise = SaveData.SKIN_PREISE;
 
+        getContentRoot().getChildren().addAll(skinBg, skinTitel);
+
         for (int i = 0; i < 3; i++) {
             final int idx = i;
             boolean gekauft = SaveData.skinFreigeschaltet[i][1];
@@ -132,7 +134,7 @@ public class CustomMainMenu extends FXGLMenu {
             getContentRoot().getChildren().addAll(skinBtn, skinBtnText, skinName);
         }
 
-        getContentRoot().getChildren().addAll(skinBg, skinTitel);
+
 
         // ── MAP AUSWAHL ──────────────────────────────────────────
         Text mapTitel = mkText("KARTE WÄHLEN", W/2.0 - 100, H - 265,

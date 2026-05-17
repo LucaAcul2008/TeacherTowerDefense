@@ -285,7 +285,7 @@ public class LehrerComponent extends Component {
             case 1: // Feichtner
                 return "ProjektilPotion";
             case 2: // Winkler
-                return nutztSkin ? "ProjektilMusicdisk" : "ProjektilFloppy";
+                return nutztSkin ? "ProjektilMusikdisk" : "ProjektilFloppy";
             case 0: // Groebl
             default:
                 return nutztSkin ? "ProjektilGolfball" : "ProjektilBoomerang";
