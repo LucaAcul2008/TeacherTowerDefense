@@ -45,7 +45,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
                 .view(schuelerView(typ))
                 .bbox(new HitBox("body", new Point2D(0, 0), BoundingShape.box(hitbox, hitbox)))
                 .collidable()
-                .with(new SchuelerComponent(typ))
+                .with(new SchuelerComponent(typ, startIndex))
                 .zIndex(100)
                 .build();
 
@@ -93,6 +93,28 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
                 .build();
     }
 
+    @Spawns("Lehrer4")
+    public Entity newLehrer4(SpawnData data) {
+        return FXGL.entityBuilder(data)
+                .type(EntityType.LEHRER)
+                .viewWithBBox(lehrerView("Aigner.png", 48))
+                .with(new LehrerComponent(3))
+                .with(new AignerBuffComponent())
+                .zIndex(10)
+                .build();
+    }
+
+    @Spawns("Lehrer5")
+    public Entity newLehrer5(SpawnData data) {
+        return FXGL.entityBuilder(data)
+                .type(EntityType.LEHRER)
+                .viewWithBBox(lehrerView("Gassner.png", 48))
+                .with(new LehrerComponent(4))
+                .with(new GassnerComponent())
+                .zIndex(10)
+                .build();
+    }
+
     @Spawns("LehrerSchatten")
     public Entity newLehrerSchatten(SpawnData data) {
         Circle rangeCircle = new Circle(150, Color.color(1, 1, 1, 0.2));
@@ -120,6 +142,8 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
             case TYP4 -> "Maxi.png";
             case TYP5 -> "Toni.png";
             case TYP6 -> "Marko.png";
+            case TYP7 -> "clemens.png";
+            case TYP8 -> "johannes.png";
             default   -> null;
         };
         int spriteH = switch (typ) {

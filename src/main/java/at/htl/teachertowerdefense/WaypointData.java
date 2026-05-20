@@ -74,6 +74,19 @@ public class WaypointData {
         return Math.min(index + 1, route.size() - 1);
     }
 
+    /** Wie naechsterWaypointIndex, sucht aber nur ab Index {@code ab} vorwärts (max 8 Punkte). */
+    public static int naechsterWaypointIndexAb(double x, double y, int ab) {
+        List<Point2D> route = getROUTE();
+        int bis = Math.min(ab + 8, route.size());
+        double minDist = Double.MAX_VALUE;
+        int index = ab;
+        for (int i = ab; i < bis; i++) {
+            double dist = route.get(i).distance(x, y);
+            if (dist < minDist) { minDist = dist; index = i; }
+        }
+        return Math.min(index + 1, route.size() - 1);
+    }
+
     public static List<Point2D> routeAbIndex(int startIndex) {
         List<Point2D> route = getROUTE();
         return new ArrayList<>(route.subList(startIndex, route.size()));

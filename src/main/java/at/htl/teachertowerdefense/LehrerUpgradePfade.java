@@ -110,25 +110,65 @@ public class LehrerUpgradePfade {
             new LehrerUpgrade   ("System-Crash",            800,  600,  30, -0.05, 2, 1, false)
     );
 
-    // ── GROEBL MIT GOLFBALL SKIN – alternative Upgrade-Namen ────
-    public static final String[] LEHRER1_SKIN_PFAD_A_NAMEN = {
-            "Schnellerer Schwung", "Turbo-Drive", "Blitz-Drive", "Schallmauer-Eagle", "MEGA-Eagle"
-    };
-    public static final String[] LEHRER1_SKIN_PFAD_B_NAMEN = {
-            "Frischer Abschlag", "Starker Drive", "Eisenharter Drive", "Titan-Driver", "Nuklearer Eagle"
-    };
-    public static final String[] LEHRER1_SKIN_PFAD_C_NAMEN = {
-            "Längerer Schläger", "Doppel-Abschlag", "Weitschlag-Training", "Golf-Salve", "360° Golfsturm"
-    };
+    // ── LEHRER 4: AIGNER – Bufferin (Ethiklehrerin) ──────────────
+    public static final double BASE_RANGE_L4        = 200;
+    public static final double BASE_SHOOT_DELAY_L4  = 0.0;
+    public static final int    BASE_DAMAGE_L4       = 1;
+    public static final int    BASE_MULTI_TARGET_L4 = 0;
 
-    // ── WINKLER MIT MUSIKDISK SKIN – alternative Upgrade-Namen ──
-    public static final String[] LEHRER3_SKIN_PFAD_A_NAMEN = {
-            "Doppel-Vinyl", "Triple-Mix", "Remix-Angriff", "Cluster-Beat", "Beat-Sturm"
-    };
-    public static final String[] LEHRER3_SKIN_PFAD_B_NAMEN = {
-            "Schneller Beat", "Tempo-Mix", "Bassboost", "Hyperspeed-Mix", "Ultrabeat-Transfer"
-    };
-    public static final String[] LEHRER3_SKIN_PFAD_C_NAMEN = {
-            "Weitwurf-Rhythmus", "Bassline-Schaden", "Extended Rhythm", "Bassline-Zerstörer", "Beat-Crash"
-    };
+    /** Pfad A – Aura-Radius (ROT) */
+    public static final List<LehrerUpgrade> LEHRER4_PFAD_A = List.of(
+            LehrerUpgrade.range("Größere Aura",            100,   0,  25),
+            LehrerUpgrade.range("Weitreichend",            220,  60,  30),
+            LehrerUpgrade.range("Mächtige Aura",           380, 180,  40),
+            LehrerUpgrade.range("Omnipräsenz",             650, 400,  50),
+            LehrerUpgrade.range("Schulweite Aura",        1100, 800,  80)
+    );
+    /** Pfad B – Schadensbuff (GELB) */
+    public static final List<LehrerUpgrade> LEHRER4_PFAD_B = List.of(
+            LehrerUpgrade.damage("Motivationsschub",       100,   0,  1),
+            LehrerUpgrade.damage("Begeisterungsfeuer",     220,  60,  1),
+            LehrerUpgrade.damage("Vollgasmodus",           380, 180,  2),
+            LehrerUpgrade.damage("Übermenschen-Trainer",   650, 400,  2),
+            LehrerUpgrade.damage("Göttlicher Antrieb",    1100, 800,  4)
+    );
+    /** Pfad C – Tempobuff (GRÜN, 0-Effekt in LehrerUpgrade, Wert aus AignerBuffComponent) */
+    public static final List<LehrerUpgrade> LEHRER4_PFAD_C = List.of(
+            new LehrerUpgrade("Tempo-Vortrag",              80,   0, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Doppeltempo",               160,  60, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Hyperspeed-Unterricht",     280, 180, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Turbo-Didaktik",            480, 400, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Zeitkompression",           900, 800, 0, 0, 0, 0, false)
+    );
+
+    // ── LEHRER 5: GASSNER – Geldgenerator ────────────────────────
+    public static final double BASE_RANGE_L5        = 0;
+    public static final double BASE_SHOOT_DELAY_L5  = 99.0;
+    public static final int    BASE_DAMAGE_L5       = 0;
+    public static final int    BASE_MULTI_TARGET_L5 = 0;
+
+    /** Pfad A – Generierungsgeschwindigkeit (ROT) */
+    public static final List<LehrerUpgrade> LEHRER5_PFAD_A = List.of(
+            new LehrerUpgrade("Haushaltszwang",            100,   0, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Nebeneinkommen",            200,  60, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Investorentrick",           350, 180, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Steueroase",                600, 400, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Zentralbank",              1000, 800, 0, 0, 0, 0, false)
+    );
+    /** Pfad B – Generierungsbetrag (GELB) */
+    public static final List<LehrerUpgrade> LEHRER5_PFAD_B = List.of(
+            new LehrerUpgrade("Taschengeld",               100,   0, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Gehaltsscheck",             200,  60, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Bonus-Paket",               350, 180, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Geheimdepot",               600, 400, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Gelddruckmaschine",        1000, 800, 0, 0, 0, 0, false)
+    );
+    /** Pfad C – Synergie (GRÜN) */
+    public static final List<LehrerUpgrade> LEHRER5_PFAD_C = List.of(
+            new LehrerUpgrade("Teamwork",                   80,   0, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Aktienpool",                160,  60, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Hedgefonds",                280, 180, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Monopol",                   480, 400, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Weltherrschaft",            900, 800, 0, 0, 0, 0, false)
+    );
 }

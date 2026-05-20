@@ -33,6 +33,7 @@ public class CustomMainMenu extends FXGLMenu {
     // Map-Karten
     private VBox[] mapKarten = new VBox[3];
     private Rectangle[] mapBorders = new Rectangle[3];
+    private Text[] sterneTexte = new Text[3];
 
     // Diff-Buttons
     private Rectangle[] diffBtns = new Rectangle[3];
@@ -183,6 +184,7 @@ public class CustomMainMenu extends FXGLMenu {
             for (int s = 0; s < 3; s++) sterneStr.append(s < sterne ? "★" : "☆");
             Text sterneText = mkText(sterneStr.toString(), 0, 0,
                     Color.web("#f1c40f"), 16, false);
+            sterneTexte[i] = sterneText; // Referenz speichern für späteren Refresh
 
             // Gesperrt-Overlay
             Text lockText;
@@ -273,6 +275,24 @@ public class CustomMainMenu extends FXGLMenu {
         exitBtn.setOnMouseExited(e  -> exitBtn.setFill(Color.color(0.4,0.05,0.05,0.85)));
 
         getContentRoot().getChildren().addAll(startBtn, startText, exitBtn, exitText);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // LIFECYCLE – Sterne & Münzen aktualisieren wenn Menü geöffnet wird
+    // ──────────────────────────────────────────────────────────────
+
+    @Override
+    public void onEnteredFrom(com.almasb.fxgl.scene.Scene prev) {
+        super.onEnteredFrom(prev);
+        SaveData.laden();
+        muenzenText.setText("💰  " + SaveData.muenzen + " Münzen");
+        for (int i = 0; i < sterneTexte.length; i++) {
+            if (sterneTexte[i] == null) continue;
+            int s = SaveData.getSterne(i);
+            StringBuilder sb = new StringBuilder();
+            for (int j = 0; j < 3; j++) sb.append(j < s ? "★" : "☆");
+            sterneTexte[i].setText(sb.toString());
+        }
     }
 
     // ──────────────────────────────────────────────────────────────

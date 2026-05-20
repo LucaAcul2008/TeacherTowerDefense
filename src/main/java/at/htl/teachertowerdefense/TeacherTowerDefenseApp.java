@@ -28,6 +28,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
     private static final Color PANEL_BG    = Color.web("#12121e");
     private static final Color PANEL_SEC   = Color.web("#1e1e30");
 
+    private boolean gameOverGezeigt = false;
+
     private Entity lehrerSchatten;
     private Entity ausgewaehlterLehrer = null;
     private Entity rangeIndicator      = null;
@@ -51,7 +53,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
     private Circle[]  dotsC = new Circle[5];
     private Line[]    trennlinien = new Line[4];
     private final List<javafx.scene.Node> panelNodes = new ArrayList<>();
-    private boolean gameOverGezeigt = false;
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -72,12 +73,13 @@ public class TeacherTowerDefenseApp extends GameApplication {
     @Override
     protected void initGameVars(Map<String, Object> vars) {
         vars.put("leben", 20);
-        vars.put("geld",  (int)(1000 * GameConfig.getStartgeldMulti())); //1000 zum testen und vorführen
+        vars.put("geld",  (int)(500 * GameConfig.getStartgeldMulti()));
         vars.put("runde", 1);
     }
 
     @Override
     protected void initGame() {
+        gameOverGezeigt = false;
         SaveData.laden();
         SaveData.mapFreigeschaltet[1] = true;
         FXGL.getGameWorld().addEntityFactory(new TeacherTowerDefenseFactory());
@@ -216,6 +218,18 @@ public class TeacherTowerDefenseApp extends GameApplication {
         Line shopTrenn2 = new Line(965, 138, 1195, 138);
         shopTrenn2.setStroke(Color.web("#333355")); shopTrenn2.setStrokeWidth(1);
 
+        // ── Shop Icons Zeile 2: Aigner (4) und Gassner (5) ──────
+        javafx.scene.Node shopIcon4 = ladeLehrerShopIcon("Aigner.png",  993, 148, 52, 52, Color.web("#8e24aa"));
+        Text shopName4  = mkText("Aigner",   990, 208, Color.LIGHTGRAY, 10, false);
+        Text shopPreis4 = mkText("200 €",    997, 220, Color.web("#f1c40f"), 11, true);
+
+        javafx.scene.Node shopIcon5 = ladeLehrerShopIcon("Gassner.png", 1113, 148, 52, 52, Color.web("#27ae60"));
+        Text shopName5  = mkText("Gassner", 1108, 208, Color.LIGHTGRAY, 10, false);
+        Text shopPreis5 = mkText("175 €",   1118, 220, Color.web("#f1c40f"), 11, true);
+
+        Line shopTrenn3 = new Line(965, 228, 1195, 228);
+        shopTrenn3.setStroke(Color.web("#333355")); shopTrenn3.setStrokeWidth(1);
+
         // Drag & Drop Lehrer1
         double sx = shopIcon1.getTranslateX(), sy = shopIcon1.getTranslateY();
         shopIcon1.setOnMousePressed(e -> {
@@ -277,7 +291,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
                 if (!kollidiert(mx, my) && mx < 960) {
                     Entity l = FXGL.spawn("Lehrer3", mx-24, my-24);
-                    l.getComponent(LehrerComponent.class).setBaseKosten(125); // NEU
+                    l.getComponent(LehrerComponent.class).setBaseKosten(125);
                     FXGL.inc("geld", -125);
                 }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
@@ -285,8 +299,54 @@ public class TeacherTowerDefenseApp extends GameApplication {
             shopIcon3.setTranslateX(sx3); shopIcon3.setTranslateY(sy3);
         });
 
+        // Drag & Drop Lehrer4 (Aigner)
+        double sx4 = shopIcon4.getTranslateX(), sy4 = shopIcon4.getTranslateY();
+        shopIcon4.setOnMousePressed(e -> {
+            if (FXGL.geti("geld") >= 200) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
+        });
+        shopIcon4.setOnMouseDragged(e -> {
+            shopIcon4.setTranslateX(FXGL.getInput().getMouseXUI() - 28);
+            shopIcon4.setTranslateY(FXGL.getInput().getMouseYUI() - 28);
+            aktualisiereLehrerSchatten();
+        });
+        shopIcon4.setOnMouseReleased(e -> {
+            if (lehrerSchatten != null) {
+                double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
+                if (!kollidiert(mx, my) && mx < 960) {
+                    Entity l = FXGL.spawn("Lehrer4", mx-24, my-24);
+                    l.getComponent(LehrerComponent.class).setBaseKosten(200);
+                    FXGL.inc("geld", -200);
+                }
+                lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
+            }
+            shopIcon4.setTranslateX(sx4); shopIcon4.setTranslateY(sy4);
+        });
+
+        // Drag & Drop Lehrer5 (Gassner)
+        double sx5 = shopIcon5.getTranslateX(), sy5 = shopIcon5.getTranslateY();
+        shopIcon5.setOnMousePressed(e -> {
+            if (FXGL.geti("geld") >= 175) { lehrerSchatten = FXGL.spawn("LehrerSchatten", -100, -100); deselect(); }
+        });
+        shopIcon5.setOnMouseDragged(e -> {
+            shopIcon5.setTranslateX(FXGL.getInput().getMouseXUI() - 28);
+            shopIcon5.setTranslateY(FXGL.getInput().getMouseYUI() - 28);
+            aktualisiereLehrerSchatten();
+        });
+        shopIcon5.setOnMouseReleased(e -> {
+            if (lehrerSchatten != null) {
+                double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
+                if (!kollidiert(mx, my) && mx < 960) {
+                    Entity l = FXGL.spawn("Lehrer5", mx-24, my-24);
+                    l.getComponent(LehrerComponent.class).setBaseKosten(175);
+                    FXGL.inc("geld", -175);
+                }
+                lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
+            }
+            shopIcon5.setTranslateX(sx5); shopIcon5.setTranslateY(sy5);
+        });
+
         // === UPGRADE PANEL ===
-        double PX = 965, PY = 134;
+        double PX = 965, PY = 232;
 
         upgradePanel = new Rectangle(230, 300, PANEL_BG);
         upgradePanel.setTranslateX(PX); upgradePanel.setTranslateY(PY);
@@ -354,7 +414,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         setzeUpgradePanelSichtbar(false);
 
-        // === START + SPEED BUTTONS ===
+        // === START BUTTON ===
         startButton = new Rectangle(110, 40, Color.web("#27ae60"));
         startButton.setArcWidth(8); startButton.setArcHeight(8);
         startButton.setTranslateX(PX); startButton.setTranslateY(540);
@@ -364,55 +424,55 @@ public class TeacherTowerDefenseApp extends GameApplication {
         startButton.setOnMouseEntered(e -> { if (startButton.getFill().equals(Color.web("#27ae60"))) startButton.setFill(Color.web("#2ecc71")); });
         startButton.setOnMouseExited(e  -> { if (startButton.getFill().equals(Color.web("#2ecc71"))) startButton.setFill(Color.web("#27ae60")); });
 
+        // === SPEED BUTTON ===
         Rectangle speedBtn = new Rectangle(100, 40, Color.web("#1a1a2e"));
-        speedBtn.setArcWidth(8); speedBtn.setArcHeight(8);
         speedBtn.setTranslateX(PX + 120); speedBtn.setTranslateY(540);
+        speedBtn.setArcWidth(8); speedBtn.setArcHeight(8);
         speedBtn.setStroke(Color.web("#333355")); speedBtn.setStrokeWidth(1);
-        Text speedText = mkText("▶▶  1x", PX + 138, 567, Color.WHITE, 13, true);
+        Text speedText = mkText("▶▶  1x", PX + 134, 567, Color.WHITE, 13, true);
         speedBtn.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
         speedText.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
 
-        // === SKIN BEREICH ===
+        // === INLINE SKIN BUTTONS ===
         Line skinTrenn = new Line(965, 588, 1195, 588);
         skinTrenn.setStroke(Color.web("#333355")); skinTrenn.setStrokeWidth(1);
 
         Text skinLabel = mkText("🎨 SKINS:", PX + 4, 610, Color.web("#9b59b6"), 10, true);
 
-        String[] skinKuerzel = { "GR", "FE", "WI" };
-        Rectangle[] skinBtns = new Rectangle[3];
-        Text[] skinTexts = new Text[3];
+        Rectangle[] skinBtns  = new Rectangle[3];
+        Text[]      skinTexts = new Text[3];
 
         for (int i = 0; i < 3; i++) {
             final int idx = i;
-            boolean aktiv   = SaveData.aktiverSkin[i] == 1;
             boolean gekauft = SaveData.skinFreigeschaltet[i][1];
-            double bx = PX + 70 + i * 46;
+            boolean aktiv   = SaveData.aktiverSkin[i] == 1;
 
-            Rectangle sb = new Rectangle(40, 26,
-                    aktiv   ? Color.web("#6c3483")
-                            : gekauft ? Color.web("#1f3a8a")
-                            :           Color.color(0.12, 0.12, 0.12, 0.9));
-            sb.setArcWidth(5); sb.setArcHeight(5);
-            sb.setTranslateX(bx); sb.setTranslateY(595);
-            sb.setStroke(aktiv ? Color.web("#9b59b6") : Color.web("#444466"));
-            sb.setStrokeWidth(aktiv ? 1.5 : 1.0);
-            skinBtns[i] = sb;
+            skinBtns[i] = new Rectangle(56, 34,
+                    aktiv    ? Color.web("#6c3483")
+                            : gekauft ? Color.web("#2c3e7a")
+                            : (SaveData.muenzen >= SaveData.SKIN_PREISE[i]
+                            ? Color.web("#1a3a1a")
+                            : Color.color(0.1, 0.1, 0.1, 0.9)));
+            skinBtns[i].setArcWidth(6); skinBtns[i].setArcHeight(6);
+            skinBtns[i].setTranslateX(PX + 60 + i * 66); skinBtns[i].setTranslateY(595);
+            skinBtns[i].setStroke(Color.web("#9b59b6")); skinBtns[i].setStrokeWidth(1);
 
-            Text st = mkText(skinKuerzel[i], bx + 9, 614, Color.WHITE, 9, true);
-            skinTexts[i] = st;
+            String btnLabel = gekauft ? (aktiv ? "✓ AN" : "○ AUS") : SaveData.SKIN_PREISE[i] + "💰";
+            skinTexts[i] = mkText(btnLabel, PX + 64 + i * 66, 617, Color.WHITE, 10, true);
 
-            sb.setOnMouseClicked(e -> {
+            skinBtns[i].setOnMouseClicked(e -> {
                 if (SaveData.kaufeSkin(idx)) {
                     for (int j = 0; j < 3; j++) {
-                        boolean a = SaveData.aktiverSkin[j] == 1;
-                        boolean g = SaveData.skinFreigeschaltet[j][1];
-                        skinBtns[j].setFill(a ? Color.web("#6c3483") : g ? Color.web("#1f3a8a") : Color.color(0.12, 0.12, 0.12, 0.9));
-                        skinBtns[j].setStroke(a ? Color.web("#9b59b6") : Color.web("#444466"));
-                        skinBtns[j].setStrokeWidth(a ? 1.5 : 1.0);
+                        boolean jGekauft = SaveData.skinFreigeschaltet[j][1];
+                        boolean jAktiv   = SaveData.aktiverSkin[j] == 1;
+                        skinBtns[j].setFill(jAktiv ? Color.web("#6c3483")
+                                : jGekauft ? Color.web("#2c3e7a")
+                                : Color.color(0.1, 0.1, 0.1, 0.9));
+                        skinTexts[j].setText(jGekauft ? (jAktiv ? "✓ AN" : "○ AUS") : SaveData.SKIN_PREISE[j] + "💰");
                     }
                 }
             });
-            st.setOnMouseClicked(sb.getOnMouseClicked());
+            skinTexts[i].setOnMouseClicked(skinBtns[i].getOnMouseClicked());
         }
 
         Text settingsHint = mkText("⚙  ESC = Einstellungen", PX + 4, 637, Color.web("#555577"), 9, false);
@@ -423,6 +483,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 shopIcon2, shopName2, shopPreis2,
                 shopIcon3, shopName3, shopPreis3,
                 shopTrenn2,
+                shopIcon4, shopName4, shopPreis4,
+                shopIcon5, shopName5, shopPreis5,
+                shopTrenn3,
                 startButton, startButtonText,
                 speedBtn, speedText,
                 skinTrenn, skinLabel,
@@ -435,6 +498,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         for (javafx.scene.Node node : panelNodes) FXGL.getGameScene().addUINode(node);
     }
+
     // ============================================================
     // UPGRADE PANEL
     // ============================================================
@@ -456,9 +520,11 @@ public class TeacherTowerDefenseApp extends GameApplication {
         entferneRangeIndicator();
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
+        double range = lc.getRange();
+        if (range <= 0) return; // Gassner hat keine Reichweite
         rangeIndicator = FXGL.spawn("RangeIndicator",
                 new SpawnData(ausgewaehlterLehrer.getX()+24, ausgewaehlterLehrer.getY()+24)
-                        .put("range", lc.getRange()));
+                        .put("range", range));
     }
 
     private void entferneRangeIndicator() {
@@ -469,33 +535,42 @@ public class TeacherTowerDefenseApp extends GameApplication {
     private void aktualisiereUpgradePanel() {
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) { deselect(); return; }
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
-
-        // XP pro Lehrer-Typ anzeigen
         int lehrerIdx = lc.getLehrerTyp();
 
-        // Aktives Projektil anzeigen (ändert sich mit Skin)
-        String projektil = switch (lehrerIdx) {
-            case 0 -> lc.getProjektilTyp().equals("ProjektilGolfball") ? "Golfball" : "Boomerang";
-            case 1 -> "Potion";
-            case 2 -> lc.getProjektilTyp().equals("ProjektilMusikdisk") ? "Musik-Disk" : "Floppy";
-            default -> "";
-        };
-        upgradeTitel.setText(projektil + "  |  ⭐ " + SaveData.getXP(lehrerIdx) + " XP");
+        String[] lehrerNamen = {"Groebl", "Feichtner", "Winkler", "Aigner", "Gassner"};
+        upgradeTitel.setText(lehrerNamen[Math.min(lehrerIdx, lehrerNamen.length-1)]
+                + "  |  ⭐ " + SaveData.getXP(lehrerIdx) + " XP");
 
-        statRange.setText(String.format("🎯  %.0fpx", lc.getRange()));
-        statDamage.setText(String.format("⚔  %d Schaden", lc.getDamage()));
-        statSpeed.setText(String.format("⚡  %.1fs", lc.getShootDelay()));
-        statTargets.setText(String.format("🎯x  %d Ziel%s", lc.getMultiTarget(), lc.getMultiTarget()>1?"e":""));
+        // Spezial-Anzeige für Aigner und Gassner
+        if (lehrerIdx == 3 && ausgewaehlterLehrer.hasComponent(AignerBuffComponent.class)) {
+            AignerBuffComponent ab = ausgewaehlterLehrer.getComponent(AignerBuffComponent.class);
+            statRange.setText(String.format("🔮  %.0fpx Aura",   ab.getBuffRadius()));
+            statDamage.setText(String.format("⚔+  %d Buff",      ab.getDamageBonus()));
+            statSpeed.setText(String.format("⚡+  %.2fs Tempo",   ab.getShootDelayBonus()));
+            statTargets.setText("(Bufferin)");
+        } else if (lehrerIdx == 4 && ausgewaehlterLehrer.hasComponent(GassnerComponent.class)) {
+            GassnerComponent gc = ausgewaehlterLehrer.getComponent(GassnerComponent.class);
+            statRange.setText(String.format("💰  %d€ Betrag",     gc.getGenBetrag()));
+            statDamage.setText(String.format("⏱  %.1fs Interval", gc.getGenInterval()));
+            statSpeed.setText(String.format("🔗  x%.1f Synergie", gc.getSynergie()));
+            statTargets.setText("(Geldgenerator)");
+        } else {
+            statRange.setText(String.format("🎯  %.0fpx",         lc.getRange()));
+            statDamage.setText(String.format("⚔  %d Schaden",     lc.getDamage()));
+            statSpeed.setText(String.format("⚡  %.1fs",           lc.getShootDelay()));
+            statTargets.setText(String.format("🎯x  %d Ziel%s",   lc.getMultiTarget(), lc.getMultiTarget()>1?"e":""));
+        }
 
         aktualisiereDots(dotsA, lc.getStufePfadA(), lc.kannUpgradeA(), FARBE_A, FARBE_A_DIM);
         aktualisiereDots(dotsB, lc.getStufePfadB(), lc.kannUpgradeB(), FARBE_B, FARBE_B_DIM);
         aktualisiereDots(dotsC, lc.getStufePfadC(), lc.kannUpgradeC(), FARBE_C, FARBE_C_DIM);
 
-        // Pfad-Beschreibungen je nach Lehrer-Typ korrekt
         String[] pfadNamen = switch (lehrerIdx) {
-            case 1  -> new String[]{ "Pfad A – Radius",  "Pfad B – Schaden", "Pfad C – Speed"      };
-            case 2  -> new String[]{ "Pfad A – Ziele",   "Pfad B – Speed",   "Pfad C – Reichweite" };
-            default -> new String[]{ "Pfad A – Speed",   "Pfad B – Schaden", "Pfad C – Reichweite" };
+            case 1  -> new String[]{"Pfad A – Radius",      "Pfad B – Schaden",     "Pfad C – Speed"};
+            case 2  -> new String[]{"Pfad A – Ziele",       "Pfad B – Speed",       "Pfad C – Reichweite"};
+            case 3  -> new String[]{"Pfad A – Aura-Radius", "Pfad B – Schadensbuff","Pfad C – Tempobuff"};
+            case 4  -> new String[]{"Pfad A – Frequenz",    "Pfad B – Betrag",      "Pfad C – Synergie"};
+            default -> new String[]{"Pfad A – Speed",       "Pfad B – Schaden",     "Pfad C – Reichweite"};
         };
 
         aktualisierePfadBtn(btnA, labelA, kostenA, pfadNamen[0], lc.nameA(), lc.kostenA(), lc.xpKostenA(), lc.istFreigeschaltetA(), lc.kannUpgradeA(), FARBE_A_DIM, FARBE_A);
@@ -685,11 +760,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
         double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
         lehrerSchatten.setPosition(mx - 24, my - 24);
         boolean koll = kollidiert(mx, my) || mx >= 960;
-        Circle rc = lehrerSchatten.getViewComponent().getChildren().stream()
-                .filter(n -> n instanceof Circle).map(n -> (Circle) n).findFirst().orElse(null);
-        Rectangle bd = lehrerSchatten.getViewComponent().getChildren().stream()
-                .filter(n -> n instanceof Rectangle).map(n -> (Rectangle) n).findFirst().orElse(null);
-        if (rc == null || bd == null) return;
+        Circle rc    = (Circle)    lehrerSchatten.getViewComponent().getChildren().get(0);
+        Rectangle bd = (Rectangle) lehrerSchatten.getViewComponent().getChildren().get(1);
         if (koll) { bd.setFill(Color.color(1,0,0,0.5)); rc.setFill(Color.color(1,0,0,0.2)); rc.setStroke(Color.RED); }
         else       { bd.setFill(Color.color(0,0.4,1,0.5)); rc.setFill(Color.color(1,1,1,0.2)); rc.setStroke(Color.WHITE); }
     }

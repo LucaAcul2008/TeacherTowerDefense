@@ -34,10 +34,23 @@ public class TowerComponent extends Component {
         LehrerComponent lc = entity.hasComponent(LehrerComponent.class)
                 ? entity.getComponent(LehrerComponent.class) : null;
 
+        // Aigner und Gassner schießen nicht
+        if (lc != null && lc.getLehrerTyp() >= 3) return;
+
         double range      = lc != null ? lc.getRange()      : baseRange;
         double shootDelay = lc != null ? lc.getShootDelay() : baseShootDelay;
         int    damage     = lc != null ? lc.getDamage()     : 1;
         int    maxTargets = lc != null ? lc.getMultiTarget(): 1;
+
+        // Aigner-Buff: Boni von benachbarten Aigners einrechnen
+        for (Entity a : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
+            if (!a.hasComponent(AignerBuffComponent.class)) continue;
+            AignerBuffComponent ab = a.getComponent(AignerBuffComponent.class);
+            if (entity.getCenter().distance(a.getCenter()) <= ab.getBuffRadius()) {
+                damage    += ab.getDamageBonus();
+                shootDelay = Math.max(0.1, shootDelay - ab.getShootDelayBonus());
+            }
+        }
 
         if (!shootTimer.elapsed(Duration.seconds(shootDelay / GameConfig.speedMulti))) return;
 
@@ -50,14 +63,12 @@ public class TowerComponent extends Component {
 
         if (inRange.isEmpty()) return;
 
-        Point2D ziel = WaypointData.getROUTE().get(WaypointData.getROUTE().size() - 1);
-        inRange.sort(Comparator.comparingDouble(e -> e.getCenter().distance(ziel)));
+        // Ziel: Schüler der dem Ausgang am nächsten ist
+        Point2D ausgang = WaypointData.getROUTE().get(WaypointData.getROUTE().size() - 1);
+        inRange.sort(Comparator.comparingDouble(e -> e.getCenter().distance(ausgang)));
 
-
-        String projektilTyp = "ProjektilFloppy";
-        if (lc != null) {
-            projektilTyp = lc.getProjektilTyp();
-        }
+        String projektilTyp = lc != null ? lc.getProjektilTyp() : "ProjektilFloppy";
+        if (projektilTyp.isEmpty()) return;
 
         int schuesse = Math.min(maxTargets, inRange.size());
         for (int i = 0; i < schuesse; i++) {

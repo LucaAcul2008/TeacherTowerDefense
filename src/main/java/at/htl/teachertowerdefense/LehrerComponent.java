@@ -51,7 +51,7 @@ public class LehrerComponent extends Component {
     public LehrerComponent(int lehrerTyp) {
         this.lehrerTyp = lehrerTyp;
 
-        this.nutztSkin = (SaveData.aktiverSkin[lehrerTyp] == 1);
+        this.nutztSkin = (lehrerTyp < SaveData.aktiverSkin.length && SaveData.aktiverSkin[lehrerTyp] == 1);
 
         switch (lehrerTyp) {
             case 1 -> { // Feichtner – Sniper
@@ -71,6 +71,24 @@ public class LehrerComponent extends Component {
                 shootDelay = LehrerUpgradePfade.BASE_SHOOT_DELAY_L3;
                 damage = LehrerUpgradePfade.BASE_DAMAGE_L3;
                 multiTarget = LehrerUpgradePfade.BASE_MULTI_TARGET_L3;
+            }
+            case 3 -> { // Aigner – Bufferin
+                pfadA = LehrerUpgradePfade.LEHRER4_PFAD_A;
+                pfadB = LehrerUpgradePfade.LEHRER4_PFAD_B;
+                pfadC = LehrerUpgradePfade.LEHRER4_PFAD_C;
+                range = LehrerUpgradePfade.BASE_RANGE_L4;
+                shootDelay = LehrerUpgradePfade.BASE_SHOOT_DELAY_L4;
+                damage = LehrerUpgradePfade.BASE_DAMAGE_L4;
+                multiTarget = LehrerUpgradePfade.BASE_MULTI_TARGET_L4;
+            }
+            case 4 -> { // Gassner – Geldgenerator
+                pfadA = LehrerUpgradePfade.LEHRER5_PFAD_A;
+                pfadB = LehrerUpgradePfade.LEHRER5_PFAD_B;
+                pfadC = LehrerUpgradePfade.LEHRER5_PFAD_C;
+                range = LehrerUpgradePfade.BASE_RANGE_L5;
+                shootDelay = LehrerUpgradePfade.BASE_SHOOT_DELAY_L5;
+                damage = LehrerUpgradePfade.BASE_DAMAGE_L5;
+                multiTarget = LehrerUpgradePfade.BASE_MULTI_TARGET_L5;
             }
             default -> { // 0 = Groebl – Allrounder
                 pfadA = LehrerUpgradePfade.LEHRER1_PFAD_A;
@@ -225,42 +243,15 @@ public class LehrerComponent extends Component {
     }
 
     public String nameA() {
-        if (stufePfadA >= pfadA.size()) return "MAX";
-        if (nutztSkin) {
-            String[] namen = switch (lehrerTyp) {
-                case 0 -> LehrerUpgradePfade.LEHRER1_SKIN_PFAD_A_NAMEN;
-                case 2 -> LehrerUpgradePfade.LEHRER3_SKIN_PFAD_A_NAMEN;
-                default -> null;
-            };
-            if (namen != null && stufePfadA < namen.length) return namen[stufePfadA];
-        }
-        return pfadA.get(stufePfadA).name;
+        return stufePfadA >= pfadA.size() ? "MAX" : pfadA.get(stufePfadA).name;
     }
 
     public String nameB() {
-        if (stufePfadB >= pfadB.size()) return "MAX";
-        if (nutztSkin) {
-            String[] namen = switch (lehrerTyp) {
-                case 0 -> LehrerUpgradePfade.LEHRER1_SKIN_PFAD_B_NAMEN;
-                case 2 -> LehrerUpgradePfade.LEHRER3_SKIN_PFAD_B_NAMEN;
-                default -> null;
-            };
-            if (namen != null && stufePfadB < namen.length) return namen[stufePfadB];
-        }
-        return pfadB.get(stufePfadB).name;
+        return stufePfadB >= pfadB.size() ? "MAX" : pfadB.get(stufePfadB).name;
     }
 
     public String nameC() {
-        if (stufePfadC >= pfadC.size()) return "MAX";
-        if (nutztSkin) {
-            String[] namen = switch (lehrerTyp) {
-                case 0 -> LehrerUpgradePfade.LEHRER1_SKIN_PFAD_C_NAMEN;
-                case 2 -> LehrerUpgradePfade.LEHRER3_SKIN_PFAD_C_NAMEN;
-                default -> null;
-            };
-            if (namen != null && stufePfadC < namen.length) return namen[stufePfadC];
-        }
-        return pfadC.get(stufePfadC).name;
+        return stufePfadC >= pfadC.size() ? "MAX" : pfadC.get(stufePfadC).name;
     }
 
     // ============================================================
@@ -309,13 +300,10 @@ public class LehrerComponent extends Component {
 
     public String getProjektilTyp() {
         switch (lehrerTyp) {
-            case 1: // Feichtner
-                return "ProjektilPotion";
-            case 2: // Winkler
-                return nutztSkin ? "ProjektilMusikdisk" : "ProjektilFloppy";
-            case 0: // Groebl
-            default:
-                return nutztSkin ? "ProjektilGolfball" : "ProjektilBoomerang";
+            case 1: return "ProjektilPotion";
+            case 2: return nutztSkin ? "ProjektilMusikdisk" : "ProjektilFloppy";
+            case 3: case 4: return ""; // Aigner und Gassner schießen nicht
+            default: return nutztSkin ? "ProjektilGolfball" : "ProjektilBoomerang";
         }
     }
 }
