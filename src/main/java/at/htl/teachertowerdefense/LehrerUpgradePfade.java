@@ -111,18 +111,18 @@ public class LehrerUpgradePfade {
     );
 
     // ── LEHRER 4: AIGNER – Bufferin (Ethiklehrerin) ──────────────
-    public static final double BASE_RANGE_L4        = 200;
+    public static final double BASE_RANGE_L4        = 75;
     public static final double BASE_SHOOT_DELAY_L4  = 0.0;
     public static final int    BASE_DAMAGE_L4       = 1;
     public static final int    BASE_MULTI_TARGET_L4 = 0;
 
     /** Pfad A – Aura-Radius (ROT) */
     public static final List<LehrerUpgrade> LEHRER4_PFAD_A = List.of(
-            LehrerUpgrade.range("Größere Aura",            100,   0,  25),
-            LehrerUpgrade.range("Weitreichend",            220,  60,  30),
-            LehrerUpgrade.range("Mächtige Aura",           380, 180,  40),
-            LehrerUpgrade.range("Omnipräsenz",             650, 400,  50),
-            LehrerUpgrade.range("Schulweite Aura",        1100, 800,  80)
+            LehrerUpgrade.range("Größere Aura",            100,   0,  15),
+            LehrerUpgrade.range("Weitreichend",            220,  60,  20),
+            LehrerUpgrade.range("Mächtige Aura",           380, 180,  25),
+            LehrerUpgrade.range("Omnipräsenz",             650, 400,  30),
+            LehrerUpgrade.range("Schulweite Aura",        1100, 800,  40)
     );
     /** Pfad B – Schadensbuff (GELB) */
     public static final List<LehrerUpgrade> LEHRER4_PFAD_B = List.of(

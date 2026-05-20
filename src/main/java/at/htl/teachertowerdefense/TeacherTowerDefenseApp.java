@@ -686,6 +686,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         // Hindernisse prüfen
         for (Entity h : FXGL.getGameWorld().getEntitiesByType(EntityType.HINDERNIS)) {
+            if (h.getProperties().exists("erlaubtPlatzierung")) continue;
             if (h.getProperties().exists("usePip")) {
                 List<Double> pts = h.getObject("polygonPunkte");
                 double ex = h.getX(), ey = h.getY();

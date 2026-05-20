@@ -346,7 +346,13 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
         return e;
     }
 
-    @Spawns("Teich")          public Entity newTeich(SpawnData d)          { return baueHindernisOhneSchuss(d); }
+    @Spawns("Teich")
+    public Entity newTeich(SpawnData d) {
+        Entity e = baueHindernisOhneSchuss(d);
+        // Teiche haben Polygon-Form → Polygon-Check für Platzierung aktivieren
+        if (d.hasKey("polygon") || d.hasKey("polyline")) e.setProperty("usePip", true);
+        return e;
+    }
     @Spawns("Haus")           public Entity newHaus(SpawnData d)           { return baueHindernis(d); }
     @Spawns("KleinHaus")      public Entity newKleinHaus(SpawnData d)      { return baueHindernis(d); }
     @Spawns("KleinHausEimer") public Entity newKleinHausEimer(SpawnData d) { return baueHindernis(d); }
@@ -356,7 +362,12 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
     // ── City.tmx Hindernisse ─────────────────────────────────────
     @Spawns("HausFront")      public Entity newHausFront(SpawnData d)      { return baueHindernis(d); }
-    @Spawns("Dach")           public Entity newDach(SpawnData d)           { return baueHindernis(d); }
+    @Spawns("Dach")
+    public Entity newDach(SpawnData d) {
+        Entity e = baueHindernisOhneSchuss(d); // Schüsse können über Dächer fliegen
+        e.setProperty("erlaubtPlatzierung", true); // Lehrer dürfen auf Dächer platziert werden
+        return e;
+    }
     @Spawns("FoodTruck")      public Entity newFoodTruck(SpawnData d)      { return baueHindernis(d); }
     @Spawns("Bank")           public Entity newBank(SpawnData d)           { return baueHindernis(d); }
     @Spawns("Laterne")        public Entity newLaterne(SpawnData d)        { return baueHindernis(d); }

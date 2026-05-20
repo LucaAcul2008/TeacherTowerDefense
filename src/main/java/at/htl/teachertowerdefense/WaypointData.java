@@ -80,7 +80,7 @@ public class WaypointData {
         int bis = Math.min(ab + 8, route.size());
         double minDist = Double.MAX_VALUE;
         int index = ab;
-        for (int i = ab; i < bis; i++) {
+        for (int i = ab; i < route.size(); i++) {
             double dist = route.get(i).distance(x, y);
             if (dist < minDist) { minDist = dist; index = i; }
         }
