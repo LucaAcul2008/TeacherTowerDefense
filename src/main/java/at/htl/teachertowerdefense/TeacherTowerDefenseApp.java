@@ -94,6 +94,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
         FXGL.getGameWorld().addEntityFactory(new TeacherTowerDefenseFactory());
         FXGL.setLevelFromMap(GameConfig.getMapDatei());
 
+
+
         GameConfig.speedMulti = 1.0;
 
         roundManager = new RoundManager();
@@ -167,10 +169,13 @@ public class TeacherTowerDefenseApp extends GameApplication {
         FXGL.getInput().addEventHandler(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> {
             if (e.getButton() != MouseButton.PRIMARY) return;
             if (lehrerSchatten != null) return;
-            if (e.getSceneX() >= 960) return;
 
+            // 1. Koordinaten aus der FXGL-Welt holen (diese sind korrekt skaliert)
             double wx = FXGL.getInput().getMouseXWorld();
             double wy = FXGL.getInput().getMouseYWorld();
+
+            // 2. Prüfen, ob der Klick im Shop-Bereich (rechts von X=960) war
+            if (wx >= 960) return;
 
             Entity gefunden = null;
             for (Entity lehrer : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
@@ -496,6 +501,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         Text settingsHint = mkText("⚙  ESC = Einstellungen", PX + 4, 637, Color.web("#555577"), 9, false);
 
+
+
+
         FXGL.getGameScene().addUINodes(
                 shopPanel, shopTitel, shopTrenn,
                 shopIcon1, shopName1, shopPreis1,
@@ -515,8 +523,14 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 bgPanel, textLeben, textGeld, textRunde
         );
 
+
         for (javafx.scene.Node node : panelNodes) FXGL.getGameScene().addUINode(node);
+
+
+
     }
+
+
 
     // ============================================================
     // UPGRADE PANEL
@@ -784,7 +798,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
     }
 
     private void setzeUpgradePanelSichtbar(boolean v) {
-        for (javafx.scene.Node node : panelNodes) node.setVisible(v);
+        for (javafx.scene.Node node : panelNodes){
+            node.setVisible(v);
+        }
     }
 
     // ============================================================
