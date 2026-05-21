@@ -2,10 +2,6 @@ package at.htl.teachertowerdefense;
 
 import java.util.List;
 
-/**
- * Upgrade-Definitionen für alle Lehrer-Typen.
- * Stufe 1 jedes Pfades = kostenlos freigeschalten (xpKosten=0)
- */
 public class LehrerUpgradePfade {
 
     // ── LEHRER 1: GROEBL – Fisch-Boomerang ──────────────────────
@@ -14,7 +10,6 @@ public class LehrerUpgradePfade {
     public static final int    BASE_DAMAGE_L1       = 1;
     public static final int    BASE_MULTI_TARGET_L1 = 1;
 
-    // Rückwärtskompatibel (LehrerComponent default)
     public static final double BASE_RANGE        = BASE_RANGE_L1;
     public static final double BASE_SHOOT_DELAY  = BASE_SHOOT_DELAY_L1;
     public static final int    BASE_DAMAGE       = BASE_DAMAGE_L1;
@@ -30,10 +25,9 @@ public class LehrerUpgradePfade {
     public static final double BASE_RANGE_L3        = 110;
     public static final double BASE_SHOOT_DELAY_L3  = 0.4;
     public static final int    BASE_DAMAGE_L3       = 1;
-    public static final int    BASE_MULTI_TARGET_L3 = 1;
+    public static final int    BASE_MULTI_TARGET_L3 = 2;
 
     // ── LEHRER 1: GROEBL – Fisch-Boomerang ──────────────────────
-    /** Pfad A – Wurfgeschwindigkeit (ROT) */
     public static final List<LehrerUpgrade> LEHRER1_PFAD_A = List.of(
             LehrerUpgrade.speed  ("Schnellerer Schwung",      100,    0, -0.15),
             LehrerUpgrade.speed  ("Turbo-Fisch",              200,   50, -0.15),
@@ -41,7 +35,6 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.speed  ("Schallmauer-Lachs",        600,  350, -0.15),
             LehrerUpgrade.spezial("MEGA-Hecht",              1000,  700        )
     );
-    /** Pfad B – Schaden (GELB) */
     public static final List<LehrerUpgrade> LEHRER1_PFAD_B = List.of(
             LehrerUpgrade.damage("Frischer Fisch",         80,    0,  1),
             LehrerUpgrade.damage("Geräucherter Lachs",    180,   50,  1),
@@ -49,7 +42,6 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.damage("Titan-Schwertfisch",    550,  350,  2),
             LehrerUpgrade.damage("Nuklearer Karpfen",    1000,  700,  5)
     );
-    /** Pfad C – Reichweite & Mehrfach-Treffer (GRÜN) */
     public static final List<LehrerUpgrade> LEHRER1_PFAD_C = List.of(
             LehrerUpgrade.range      ("Längere Angel",          80,    0,  25),
             LehrerUpgrade.multiTarget("Doppelwurf",            150,   50,   1),
@@ -59,7 +51,6 @@ public class LehrerUpgradePfade {
     );
 
     // ── LEHRER 2: FEICHTNER – Alchemistin / Potions ──────────────
-    /** Pfad A – Explosionsradius (ROT) */
     public static final List<LehrerUpgrade> LEHRER2_PFAD_A = List.of(
             LehrerUpgrade.range("Größere Flasche",          120,    0,  20),
             LehrerUpgrade.range("Verstärkte Mischung",      250,   60,  25),
@@ -67,7 +58,6 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.range("Atomare Säure",            700,  400,  45),
             LehrerUpgrade.spezial("Apokalypse-Elixier",    1200,  800      )
     );
-    /** Pfad B – Schaden (GELB) */
     public static final List<LehrerUpgrade> LEHRER2_PFAD_B = List.of(
             LehrerUpgrade.damage("Säure-Potion",            100,    0,  1),
             LehrerUpgrade.damage("Gift-Extrakt",            220,   60,  2),
@@ -75,7 +65,6 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.damage("Plasma-Potion",           600,  400,  4),
             LehrerUpgrade.damage("Höllentrank",            1100,  800,  8)
     );
-    /** Pfad C – Wurfgeschwindigkeit (GRÜN) */
     public static final List<LehrerUpgrade> LEHRER2_PFAD_C = List.of(
             LehrerUpgrade.speed("Schnelles Brauen",          90,    0, -0.2),
             LehrerUpgrade.speed("Fließband-Alchemie",       200,   60, -0.2),
@@ -85,7 +74,6 @@ public class LehrerUpgradePfade {
     );
 
     // ── LEHRER 3: WINKLER – Floppy Disk Shooter ─────────────────
-    /** Pfad A – Mehrfach-Ziele (ROT) */
     public static final List<LehrerUpgrade> LEHRER3_PFAD_A = List.of(
             LehrerUpgrade.multiTarget("Doppel-Disk",            80,    0,  1),
             LehrerUpgrade.multiTarget("Triple-Stack",          160,   40,  1),
@@ -93,7 +81,6 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.multiTarget("Cluster-Floppy",        500,  280,  2),
             LehrerUpgrade.spezial    ("Disketten-Sturm",       900,  600     )
     );
-    /** Pfad B – Schnelligkeit (GELB) */
     public static final List<LehrerUpgrade> LEHRER3_PFAD_B = List.of(
             LehrerUpgrade.speed("Schneller Einschub",        60,    0, -0.05),
             LehrerUpgrade.speed("Overclock",                130,   40, -0.05),
@@ -101,7 +88,6 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.speed("NVMe-Reflexe",             380,  280, -0.07),
             LehrerUpgrade.spezial("Quantenbit-Transfer",    750,  600       )
     );
-    /** Pfad C – Reichweite & Schaden (GRÜN) */
     public static final List<LehrerUpgrade> LEHRER3_PFAD_C = List.of(
             LehrerUpgrade.range ("Weitwurf-Algorithmus",     70,    0,  20),
             LehrerUpgrade.damage("Formatierter Schaden",    140,   40,  1),
@@ -111,20 +97,18 @@ public class LehrerUpgradePfade {
     );
 
     // ── LEHRER 4: AIGNER – Bufferin (Ethiklehrerin) ──────────────
-    public static final double BASE_RANGE_L4        = 75;
+    public static final double BASE_RANGE_L4        = 120;
     public static final double BASE_SHOOT_DELAY_L4  = 0.0;
     public static final int    BASE_DAMAGE_L4       = 1;
     public static final int    BASE_MULTI_TARGET_L4 = 0;
 
-    /** Pfad A – Aura-Radius (ROT) */
     public static final List<LehrerUpgrade> LEHRER4_PFAD_A = List.of(
             LehrerUpgrade.range("Größere Aura",            100,   0,  15),
             LehrerUpgrade.range("Weitreichend",            220,  60,  20),
             LehrerUpgrade.range("Mächtige Aura",           380, 180,  25),
             LehrerUpgrade.range("Omnipräsenz",             650, 400,  30),
-            LehrerUpgrade.range("Schulweite Aura",        1100, 800,  40)
+            LehrerUpgrade.range("Schulweite Aura",        1100, 800,  50)
     );
-    /** Pfad B – Schadensbuff (GELB) */
     public static final List<LehrerUpgrade> LEHRER4_PFAD_B = List.of(
             LehrerUpgrade.damage("Motivationsschub",       100,   0,  1),
             LehrerUpgrade.damage("Begeisterungsfeuer",     220,  60,  1),
@@ -132,7 +116,6 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.damage("Übermenschen-Trainer",   650, 400,  2),
             LehrerUpgrade.damage("Göttlicher Antrieb",    1100, 800,  4)
     );
-    /** Pfad C – Tempobuff (GRÜN, 0-Effekt in LehrerUpgrade, Wert aus AignerBuffComponent) */
     public static final List<LehrerUpgrade> LEHRER4_PFAD_C = List.of(
             new LehrerUpgrade("Tempo-Vortrag",              80,   0, 0, 0, 0, 0, false),
             new LehrerUpgrade("Doppeltempo",               160,  60, 0, 0, 0, 0, false),
@@ -147,15 +130,13 @@ public class LehrerUpgradePfade {
     public static final int    BASE_DAMAGE_L5       = 0;
     public static final int    BASE_MULTI_TARGET_L5 = 0;
 
-    /** Pfad A – Generierungsgeschwindigkeit (ROT) */
     public static final List<LehrerUpgrade> LEHRER5_PFAD_A = List.of(
             new LehrerUpgrade("Haushaltszwang",            100,   0, 0, 0, 0, 0, false),
-            new LehrerUpgrade("Nebeneinkommen",            200,  60, 0, 0, 0, 0, false),
-            new LehrerUpgrade("Investorentrick",           350, 180, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Extraschicht",              200,  60, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Dritte Auszahlung",         350, 180, 0, 0, 0, 0, false),
             new LehrerUpgrade("Steueroase",                600, 400, 0, 0, 0, 0, false),
-            new LehrerUpgrade("Zentralbank",              1000, 800, 0, 0, 0, 0, false)
+            new LehrerUpgrade("Vierte Auszahlung",        1000, 800, 0, 0, 0, 0, false)
     );
-    /** Pfad B – Generierungsbetrag (GELB) */
     public static final List<LehrerUpgrade> LEHRER5_PFAD_B = List.of(
             new LehrerUpgrade("Taschengeld",               100,   0, 0, 0, 0, 0, false),
             new LehrerUpgrade("Gehaltsscheck",             200,  60, 0, 0, 0, 0, false),
@@ -163,12 +144,11 @@ public class LehrerUpgradePfade {
             new LehrerUpgrade("Geheimdepot",               600, 400, 0, 0, 0, 0, false),
             new LehrerUpgrade("Gelddruckmaschine",        1000, 800, 0, 0, 0, 0, false)
     );
-    /** Pfad C – Synergie (GRÜN) */
     public static final List<LehrerUpgrade> LEHRER5_PFAD_C = List.of(
-            new LehrerUpgrade("Teamwork",                   80,   0, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Kollegenbonus",              80,   0, 0, 0, 0, 0, false),
             new LehrerUpgrade("Aktienpool",                160,  60, 0, 0, 0, 0, false),
             new LehrerUpgrade("Hedgefonds",                280, 180, 0, 0, 0, 0, false),
-            new LehrerUpgrade("Monopol",                   480, 400, 0, 0, 0, 0, false),
-            new LehrerUpgrade("Weltherrschaft",            900, 800, 0, 0, 0, 0, false)
+            new LehrerUpgrade("Lebensbonus",               480, 400, 0, 0, 0, 0, false),
+            new LehrerUpgrade("Wohlstandsbonus",           900, 800, 0, 0, 0, 0, false)
     );
 }

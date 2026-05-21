@@ -72,13 +72,15 @@ public class TowerComponent extends Component {
 
         int schuesse = Math.min(maxTargets, inRange.size());
         for (int i = 0; i < schuesse; i++) {
-            FXGL.spawn(projektilTyp,
+            Entity proj = FXGL.spawn(projektilTyp,
                     new SpawnData(entity.getCenter().getX(), entity.getCenter().getY())
                             .put("target", inRange.get(i))
                             .put("damage", damage)
                             .put("spezial", lc != null && lc.isSpezialProjektil())
             );
+            proj.setProperty("lehrer", entity);
         }
+
         shootTimer.capture();
     }
 

@@ -28,6 +28,7 @@ public class LehrerComponent extends Component {
     private boolean nutztSkin;
 
     private int investiertesGeld = 0;
+    private int pops = 0;
 
     public void setBaseKosten(int kosten) {
         this.investiertesGeld = kosten;
@@ -305,5 +306,12 @@ public class LehrerComponent extends Component {
             case 3: case 4: return ""; // Aigner und Gassner schießen nicht
             default: return nutztSkin ? "ProjektilGolfball" : "ProjektilBoomerang";
         }
+    }
+    public void addPops(int damage) {
+        pops += damage;
+    }
+
+    public int getPops() {
+        return pops;
     }
 }

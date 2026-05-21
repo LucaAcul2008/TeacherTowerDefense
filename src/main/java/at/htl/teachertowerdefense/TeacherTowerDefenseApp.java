@@ -5,13 +5,23 @@ import com.almasb.fxgl.app.GameSettings;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.SpawnData;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +76,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
         settings.setDeveloperMenuEnabled(false);
         settings.setMainMenuEnabled(true);
         settings.setGameMenuEnabled(true);
-        // Unser Custom ESC-Menü mit Auto-Start Toggle
         settings.setSceneFactory(new CustomSceneFactory());
     }
 
@@ -98,7 +107,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
                         "🎉 Gewonnen!\n+" + muenzen + " Münzen gespeichert!", () ->
                                 FXGL.getGameController().gotoMainMenu());
             } else if (CustomGameMenu.autoStart) {
-                // Auto-Start: liest direkt aus CustomGameMenu.autoStart
                 FXGL.getGameTimer().runOnceAfter(() -> starteRunde(), javafx.util.Duration.seconds(3));
             } else {
                 aktualisiereStartButton(true);
@@ -111,8 +119,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         FXGL.getip("leben").addListener((obs, old, newVal) -> {
             if (newVal.intValue() <= 0 && !gameOverGezeigt) {
                 gameOverGezeigt = true;
-                FXGL.getDialogService().showMessageBox("💀 Game Over!\nDu hast verloren.", () ->
-                        FXGL.getGameController().gotoMainMenu());
+                zeigeGameOver();
             }
         });
 
@@ -128,6 +135,19 @@ public class TeacherTowerDefenseApp extends GameApplication {
     protected void initPhysics() {
         FXGL.onCollisionBegin(EntityType.PROJEKTIL, EntityType.SCHUELER, (projektil, schueler) -> {
             int dmg = projektil.getProperties().exists("damage") ? projektil.getInt("damage") : 1;
+
+            // Pops-Counter: Lehrer-Referenz aus Projektil lesen und addPop() aufrufen
+            if (projektil.getProperties().exists("lehrer")) {
+                Entity lehrerEnt = projektil.getObject("lehrer");
+                if (lehrerEnt != null && lehrerEnt.isActive()
+                        && lehrerEnt.hasComponent(LehrerComponent.class)) {
+                    lehrerEnt.getComponent(LehrerComponent.class).addPops(dmg);
+                    if (lehrerEnt == ausgewaehlterLehrer) {
+                        aktualisiereUpgradePanel();
+                    }
+                }
+            }
+
             projektil.removeFromWorld();
             schueler.getComponent(SchuelerComponent.class).damage(dmg);
         });
@@ -135,6 +155,13 @@ public class TeacherTowerDefenseApp extends GameApplication {
             if (hindernis.getProperties().exists("blockiertSchuss") && hindernis.getBoolean("blockiertSchuss"))
                 projektil.removeFromWorld();
         });
+    }
+
+    @Override
+    protected void onUpdate(double tpf) {
+        if (ausgewaehlterLehrer != null && ausgewaehlterLehrer.isActive()) {
+            aktualisiereUpgradePanel();
+        }
     }
 
     @Override
@@ -160,9 +187,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
     @Override
     protected void initUI() {
-
-
-
 
         // === STATS PANEL oben links ===
         Rectangle bgPanel = new Rectangle(210, 120, Color.color(0,0,0,0.6));
@@ -200,17 +224,14 @@ public class TeacherTowerDefenseApp extends GameApplication {
         shopTrenn.setStroke(Color.web("#333355")); shopTrenn.setStrokeWidth(1);
 
         // ── Shop Icons: 3 Lehrer nebeneinander ──────────────────
-        // Groebl (Lehrer1) – links
         javafx.scene.Node shopIcon1 = ladeLehrerShopIcon("Groebl.png",    968, 50, 52, 60, Color.web("#2980b9"));
         Text shopName1  = mkText("Groebl",    968, 118, Color.LIGHTGRAY, 10, false);
         Text shopPreis1 = mkText("100 €",    975, 130, Color.web("#f1c40f"), 11, true);
 
-        // Feichtner (Lehrer2) – mitte
         javafx.scene.Node shopIcon2 = ladeLehrerShopIcon("Feichtner.png", 1043, 50, 52, 60, Color.web("#8e24aa"));
         Text shopName2  = mkText("Feichtner", 1033, 118, Color.LIGHTGRAY, 10, false);
         Text shopPreis2 = mkText("150 €",     1048, 130, Color.web("#f1c40f"), 11, true);
 
-        // Winkler (Lehrer3) – rechts
         javafx.scene.Node shopIcon3 = ladeLehrerShopIcon("Winkler.png",   1118, 50, 52, 60, Color.web("#27ae60"));
         Text shopName3  = mkText("Winkler",   1113, 118, Color.LIGHTGRAY, 10, false);
         Text shopPreis3 = mkText("125 €",     1122, 130, Color.web("#f1c40f"), 11, true);
@@ -245,7 +266,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
                 if (!kollidiert(mx, my) && mx < 960) {
                     Entity l = FXGL.spawn("Lehrer1", mx-24, my-24);
-                    l.getComponent(LehrerComponent.class).setBaseKosten(100); // NEU
+                    l.getComponent(LehrerComponent.class).setBaseKosten(100);
                     FXGL.inc("geld", -100);
                 }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
@@ -268,7 +289,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
                 if (!kollidiert(mx, my) && mx < 960) {
                     Entity l = FXGL.spawn("Lehrer2", mx-24, my-24);
-                    l.getComponent(LehrerComponent.class).setBaseKosten(150); // NEU
+                    l.getComponent(LehrerComponent.class).setBaseKosten(150);
                     FXGL.inc("geld", -150);
                 }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
@@ -521,7 +542,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
         double range = lc.getRange();
-        if (range <= 0) return; // Gassner hat keine Reichweite
+        if (range <= 0) return;
         rangeIndicator = FXGL.spawn("RangeIndicator",
                 new SpawnData(ausgewaehlterLehrer.getX()+24, ausgewaehlterLehrer.getY()+24)
                         .put("range", range));
@@ -538,10 +559,14 @@ public class TeacherTowerDefenseApp extends GameApplication {
         int lehrerIdx = lc.getLehrerTyp();
 
         String[] lehrerNamen = {"Groebl", "Feichtner", "Winkler", "Aigner", "Gassner"};
-        upgradeTitel.setText(lehrerNamen[Math.min(lehrerIdx, lehrerNamen.length-1)]
-                + "  |  ⭐ " + SaveData.getXP(lehrerIdx) + " XP");
+        String titelName = lehrerNamen[Math.min(lehrerIdx, lehrerNamen.length - 1)];
+        if (lehrerIdx == 4 && ausgewaehlterLehrer.hasComponent(GassnerComponent.class)) {
+            int generiert = ausgewaehlterLehrer.getComponent(GassnerComponent.class).getGeneratedGeld();
+            upgradeTitel.setText(titelName + "  |  " + generiert + "€ generiert");
+        } else {
+            upgradeTitel.setText(titelName + "  |  ⭐ " + SaveData.getXP(lehrerIdx) + " XP");
+        }
 
-        // Spezial-Anzeige für Aigner und Gassner
         if (lehrerIdx == 3 && ausgewaehlterLehrer.hasComponent(AignerBuffComponent.class)) {
             AignerBuffComponent ab = ausgewaehlterLehrer.getComponent(AignerBuffComponent.class);
             statRange.setText(String.format("🔮  %.0fpx Aura",   ab.getBuffRadius()));
@@ -550,15 +575,17 @@ public class TeacherTowerDefenseApp extends GameApplication {
             statTargets.setText("(Bufferin)");
         } else if (lehrerIdx == 4 && ausgewaehlterLehrer.hasComponent(GassnerComponent.class)) {
             GassnerComponent gc = ausgewaehlterLehrer.getComponent(GassnerComponent.class);
-            statRange.setText(String.format("💰  %d€ Betrag",     gc.getGenBetrag()));
-            statDamage.setText(String.format("⏱  %.1fs Interval", gc.getGenInterval()));
-            statSpeed.setText(String.format("🔗  x%.1f Synergie", gc.getSynergie()));
-            statTargets.setText("(Geldgenerator)");
+            int stufeC = ausgewaehlterLehrer.getComponent(LehrerComponent.class).getStufePfadC();
+            String lebenInfo = stufeC >= 5 ? " +2❤" : stufeC >= 4 ? " +1❤" : "";
+            statRange.setText(String.format("💰  %d€ je Auszahlung%s", gc.getGenBetrag(), lebenInfo));
+            statDamage.setText(String.format("📅  %dx pro Runde", gc.getAuszahlungenProRunde()));
+            statSpeed.setText(String.format("🔗  x%.2f Synergie", gc.getSynergie()));
+            statTargets.setText(String.format("💵  %d€ generiert", gc.getGeneratedGeld()));
         } else {
             statRange.setText(String.format("🎯  %.0fpx",         lc.getRange()));
             statDamage.setText(String.format("⚔  %d Schaden",     lc.getDamage()));
             statSpeed.setText(String.format("⚡  %.1fs",           lc.getShootDelay()));
-            statTargets.setText(String.format("🎯x  %d Ziel%s",   lc.getMultiTarget(), lc.getMultiTarget()>1?"e":""));
+            statTargets.setText(String.format("💥  %d Pop%s",      lc.getPops(), lc.getPops() != 1 ? "s" : ""));
         }
 
         aktualisiereDots(dotsA, lc.getStufePfadA(), lc.kannUpgradeA(), FARBE_A, FARBE_A_DIM);
@@ -598,7 +625,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
             kosten.setText("");
             btn.setFill(dunkel.darker());
         } else if (!istFrei) {
-            // Noch nicht mit XP freigeschaltet → XP-Kosten + was man hat anzeigen
             int xp = SaveData.getXP(ausgewaehlterLehrer != null && ausgewaehlterLehrer.isActive()
                     ? ausgewaehlterLehrer.getComponent(LehrerComponent.class).getLehrerTyp() : 0);
             boolean genugXP = xp >= xpKosten;
@@ -648,10 +674,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
     private void verkaufeLehrer() {
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
-
         int refund = (int) (lc.getInvestiertesGeld() * 0.75);
         FXGL.inc("geld", refund);
-
         ausgewaehlterLehrer.removeFromWorld();
         deselect();
     }
@@ -679,14 +703,12 @@ public class TeacherTowerDefenseApp extends GameApplication {
     // KOLLISIONS-CHECKS
     // ============================================================
 
-    private static final double PFAD_PUFFER = 20; // Extra-Abstand vom Pfad
+    private static final double PFAD_PUFFER = 20;
 
     private boolean kollidiert(double mouseX, double mouseY) {
         double[][] ecken = {{mouseX-15,mouseY-15},{mouseX+15,mouseY-15},{mouseX-15,mouseY+15},{mouseX+15,mouseY+15}};
 
-        // Hindernisse prüfen
         for (Entity h : FXGL.getGameWorld().getEntitiesByType(EntityType.HINDERNIS)) {
-            if (h.getProperties().exists("erlaubtPlatzierung")) continue;
             if (h.getProperties().exists("usePip")) {
                 List<Double> pts = h.getObject("polygonPunkte");
                 double ex = h.getX(), ey = h.getY();
@@ -700,7 +722,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
             }
         }
 
-        // Pfad-Entities mit Puffer prüfen
         for (Entity p : FXGL.getGameWorld().getEntitiesByType(EntityType.PFAD)) {
             double px = p.getBoundingBoxComponent().getMinXWorld();
             double py = p.getBoundingBoxComponent().getMinYWorld();
@@ -711,7 +732,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
                             pw + PFAD_PUFFER*2, ph + PFAD_PUFFER*2))) return true;
         }
 
-        // Andere Lehrer prüfen
         for (Entity a : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER))
             if (Math.abs(a.getX()+24-mouseX) < 42 && Math.abs(a.getY()+24-mouseY) < 42) return true;
 
@@ -775,7 +795,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
             iv.setTranslateX(x); iv.setTranslateY(y);
             return iv;
         } catch (Exception e) {
-            // Fallback: farbiges Rechteck mit Lehrer-Initiale
             javafx.scene.layout.StackPane sp = new javafx.scene.layout.StackPane();
             Rectangle r = new Rectangle(w, h, fallback);
             r.setArcWidth(8); r.setArcHeight(8);
@@ -793,7 +812,6 @@ public class TeacherTowerDefenseApp extends GameApplication {
         speedErhoehen = !speedErhoehen;
         GameConfig.speedMulti = speedErhoehen ? 2.0 : 1.0;
 
-        // Bestehende Schüler anpassen
         FXGL.getGameWorld().getEntitiesByType(EntityType.SCHUELER).forEach(e -> {
             var wmc = e.getComponent(
                     com.almasb.fxgl.dsl.components.WaypointMoveComponent.class);
@@ -812,6 +830,128 @@ public class TeacherTowerDefenseApp extends GameApplication {
             text.setText("▶▶  1x");
             text.setFill(Color.WHITE);
         }
+    }
+
+    // ============================================================
+    // GAME OVER OVERLAY
+    // ============================================================
+
+    private void zeigeGameOver() {
+        int erreichtRunde = roundManager.getAktuelleRundeAnzeige();
+        int maxRunden     = roundManager.getMaxRunden();
+
+        Rectangle overlay = new Rectangle(1200, 640,
+                Color.color(0.0, 0.0, 0.05, 0.88));
+
+        Rectangle panel = new Rectangle(480, 420);
+        LinearGradient panelGrad = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
+                new Stop(0.0, Color.web("#1a0010")),
+                new Stop(1.0, Color.web("#0a0020")));
+        panel.setFill(panelGrad);
+        panel.setArcWidth(18);
+        panel.setArcHeight(18);
+        panel.setStroke(Color.web("#c0392b"));
+        panel.setStrokeWidth(2.5);
+
+        Text titelText = new Text("GAME OVER");
+        titelText.setFont(Font.font("Arial", FontWeight.BOLD, 46));
+        titelText.setFill(Color.web("#e74c3c"));
+        titelText.setStroke(Color.web("#8b0000"));
+        titelText.setStrokeWidth(1.5);
+        titelText.setTextAlignment(TextAlignment.CENTER);
+
+        Line trenn1 = new Line(-200, 0, 200, 0);
+        trenn1.setStroke(Color.web("#c0392b"));
+        trenn1.setStrokeWidth(1.5);
+
+        Text rundenText = new Text("Runde " + erreichtRunde + " / " + maxRunden + " erreicht");
+        rundenText.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
+        rundenText.setFill(Color.web("#ecf0f1"));
+        rundenText.setTextAlignment(TextAlignment.CENTER);
+
+        String diffName = switch (GameConfig.selectedDiff) {
+            case 1 -> "Medium";
+            case 2 -> "Hard";
+            default -> "Easy";
+        };
+        Text diffText = new Text("Schwierigkeit: " + diffName);
+        diffText.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
+        diffText.setFill(Color.web("#95a5a6"));
+        diffText.setTextAlignment(TextAlignment.CENTER);
+
+        Text statsLabel = new Text("Lehrer-Statistiken");
+        statsLabel.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+        statsLabel.setFill(Color.web("#f1c40f"));
+        statsLabel.setTextAlignment(TextAlignment.CENTER);
+
+        VBox statsBox = new VBox(4);
+        statsBox.setAlignment(Pos.CENTER);
+
+        String[] lehrerNamen = {"Groebl", "Feichtner", "Winkler", "Aigner", "Gassner"};
+        for (Entity lehrerEnt : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
+            if (!lehrerEnt.hasComponent(LehrerComponent.class)) continue;
+            LehrerComponent lc = lehrerEnt.getComponent(LehrerComponent.class);
+            int idx  = lc.getLehrerTyp();
+            String name = lehrerNamen[Math.min(idx, lehrerNamen.length - 1)];
+            String stat;
+            if (idx == 4 && lehrerEnt.hasComponent(GassnerComponent.class)) {
+                GassnerComponent gc = lehrerEnt.getComponent(GassnerComponent.class);
+                stat = gc.getGeneratedGeld() + "€ generiert";
+            } else {
+                stat = lc.getPops() + " Pops";
+            }
+            String upgradeStatus = lc.getUpgradeStatus();
+            Text zeile = new Text(name + "  [" + upgradeStatus + "]  –  " + stat);
+            zeile.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+            zeile.setFill(Color.web("#bdc3c7"));
+            zeile.setTextAlignment(TextAlignment.CENTER);
+            statsBox.getChildren().add(zeile);
+        }
+
+        if (statsBox.getChildren().isEmpty()) {
+            Text keineLehrer = new Text("Keine Lehrer platziert");
+            keineLehrer.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+            keineLehrer.setFill(Color.web("#7f8c8d"));
+            statsBox.getChildren().add(keineLehrer);
+        }
+
+        Line trenn2 = new Line(-200, 0, 200, 0);
+        trenn2.setStroke(Color.web("#333355"));
+        trenn2.setStrokeWidth(1);
+
+        Rectangle btnBg = new Rectangle(220, 48, Color.web("#27ae60"));
+        btnBg.setArcWidth(10);
+        btnBg.setArcHeight(10);
+        btnBg.setStroke(Color.web("#2ecc71"));
+        btnBg.setStrokeWidth(1.5);
+
+        Text btnText = new Text("Zum Hauptmenü");
+        btnText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        btnText.setFill(Color.WHITE);
+
+        StackPane btnStack = new StackPane(btnBg, btnText);
+        btnStack.setAlignment(Pos.CENTER);
+        btnStack.setCursor(javafx.scene.Cursor.HAND);
+        btnStack.setOnMouseEntered(e -> btnBg.setFill(Color.web("#2ecc71")));
+        btnStack.setOnMouseExited(e  -> btnBg.setFill(Color.web("#27ae60")));
+        btnStack.setOnMouseClicked(e -> FXGL.getGameController().gotoMainMenu());
+
+        VBox content = new VBox(14,
+                titelText, trenn1,
+                rundenText, diffText,
+                statsLabel, statsBox,
+                trenn2,
+                btnStack);
+        content.setAlignment(Pos.CENTER);
+        content.setPadding(new Insets(30, 30, 30, 30));
+        content.setMaxWidth(460);
+
+        StackPane panelStack = new StackPane(panel, content);
+        panelStack.setAlignment(Pos.CENTER);
+        panelStack.setTranslateX(360);
+        panelStack.setTranslateY(110);
+
+        FXGL.getGameScene().addUINodes(overlay, panelStack);
     }
 
     public static void main(String[] args) { launch(args); }

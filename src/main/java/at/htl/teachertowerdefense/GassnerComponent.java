@@ -3,34 +3,39 @@ package at.htl.teachertowerdefense;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.component.Component;
 
-/**
- * Gassner – Geldgenerator (Bananen-Farm-Stil).
- *   Pfad A → schnellere Generierung
- *   Pfad B → höherer Betrag pro Auszahlung
- *   Pfad C → Synergie: je mehr Gassners platziert, desto mehr generiert jeder
- */
 public class GassnerComponent extends Component {
 
-    private static final double[] INTERVALLE = {10.0, 9.0, 7.5, 6.0, 4.5, 3.0};
-    private static final int[]    BETRAEGE   = {25, 35, 50, 70, 100, 150};
+    private static final int[] BETRAEGE = {25, 35, 50, 70, 100, 150};
+    private static final int[] AUSZAHLUNGEN_PRO_RUNDE = {2, 2, 2, 3, 3, 4};
 
-    private double timer = 0;
+    private int generatedGeld = 0;
+    private int payoutsThisRound = 0;
 
-    @Override
-    public void onUpdate(double tpf) {
-        timer += tpf;
-        double interval = getGenInterval() / GameConfig.speedMulti;
-        if (timer >= interval) {
-            timer = 0;
-            int betrag = (int)(getGenBetrag() * getSynergie());
-            FXGL.inc("geld", betrag);
-            zeigeMuenzenAnimation(betrag);
+    public void notifyRoundPayout() {
+        int stufeA = entity.getComponent(LehrerComponent.class).getStufePfadA();
+        int maxPayouts = AUSZAHLUNGEN_PRO_RUNDE[Math.min(stufeA, AUSZAHLUNGEN_PRO_RUNDE.length - 1)];
+
+        if (payoutsThisRound >= maxPayouts) return;
+        payoutsThisRound++;
+
+        int betrag = (int) (getGenBetrag() * getSynergie());
+        FXGL.inc("geld", betrag);
+        generatedGeld += betrag;
+        zeigeMuenzenAnimation(betrag);
+
+        int stufeC = entity.getComponent(LehrerComponent.class).getStufePfadC();
+        int lebenBonus = 0;
+        if (stufeC >= 5) lebenBonus = 2;
+        else if (stufeC >= 4) lebenBonus = 1;
+
+        if (lebenBonus > 0) {
+            FXGL.inc("leben", lebenBonus);
+            zeigeLebensAnimation(lebenBonus);
         }
     }
 
-    public double getGenInterval() {
-        int stufe = entity.getComponent(LehrerComponent.class).getStufePfadA();
-        return INTERVALLE[Math.min(stufe, INTERVALLE.length - 1)];
+    public void onRundeStart() {
+        payoutsThisRound = 0;
     }
 
     public int getGenBetrag() {
@@ -38,12 +43,37 @@ public class GassnerComponent extends Component {
         return BETRAEGE[Math.min(stufe, BETRAEGE.length - 1)];
     }
 
+    public int getAuszahlungenProRunde() {
+        int stufeA = entity.getComponent(LehrerComponent.class).getStufePfadA();
+        return AUSZAHLUNGEN_PRO_RUNDE[Math.min(stufeA, AUSZAHLUNGEN_PRO_RUNDE.length - 1)];
+    }
+
     public double getSynergie() {
-        int stufe = entity.getComponent(LehrerComponent.class).getStufePfadC();
-        long anzahl = FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)
-                .stream().filter(e -> e.hasComponent(GassnerComponent.class)).count();
-        double bonus = 0.1 * stufe * (anzahl - 1);
-        return 1.0 + Math.max(0, bonus);
+        int stufeC = entity.getComponent(LehrerComponent.class).getStufePfadC();
+        if (stufeC <= 0) return 1.0;
+
+        int synStufe = Math.min(stufeC, 3);
+        double rate;
+        if (synStufe == 1)      rate = 0.10;
+        else if (synStufe == 2) rate = 0.15;
+        else                    rate = 0.20;
+
+        long anzahlMitStufe = FXGL.getGameWorld()
+                .getEntitiesByType(EntityType.LEHRER)
+                .stream()
+                .filter(e -> e.hasComponent(GassnerComponent.class))
+                .filter(e -> {
+                    LehrerComponent lc = e.getComponent(LehrerComponent.class);
+                    return lc.getStufePfadC() >= stufeC;
+                })
+                .count();
+
+        long synAnzahl = Math.max(0, anzahlMitStufe - 1);
+        return 1.0 + rate * synAnzahl;
+    }
+
+    public int getGeneratedGeld() {
+        return generatedGeld;
     }
 
     private void zeigeMuenzenAnimation(int betrag) {
@@ -55,6 +85,28 @@ public class GassnerComponent extends Component {
 
         com.almasb.fxgl.entity.Entity animEnt = FXGL.entityBuilder()
                 .at(entity.getCenter())
+                .view(txt)
+                .zIndex(200)
+                .buildAndAttach();
+
+        FXGL.animationBuilder()
+                .duration(javafx.util.Duration.seconds(0.8))
+                .onFinished(animEnt::removeFromWorld)
+                .translate(animEnt)
+                .from(animEnt.getPosition())
+                .to(animEnt.getPosition().subtract(0, 30))
+                .buildAndPlay();
+    }
+
+    private void zeigeLebensAnimation(int lebenBonus) {
+        javafx.scene.text.Text txt = new javafx.scene.text.Text("+" + lebenBonus + " ❤");
+        txt.setFill(javafx.scene.paint.Color.HOTPINK);
+        txt.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 13));
+        txt.setStroke(javafx.scene.paint.Color.BLACK);
+        txt.setStrokeWidth(0.5);
+
+        com.almasb.fxgl.entity.Entity animEnt = FXGL.entityBuilder()
+                .at(entity.getCenter().add(20, 0))
                 .view(txt)
                 .zIndex(200)
                 .buildAndAttach();

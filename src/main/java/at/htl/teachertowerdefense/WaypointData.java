@@ -6,10 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Zentrale Wegpunkt-Listen für alle Maps.
- * Auswahl über GameConfig.selectedMap.
- */
 public class WaypointData {
 
     // ── MAP 1 ────────────────────────────────────────────────────
@@ -34,33 +30,29 @@ public class WaypointData {
     }
 
     // ── MAP 2: City ──────────────────────────────────────────────
-    // Pfad aus City.tmx: Polyline bei x=1, y=608.667
     private static final List<Point2D> ROUTE_MAP2;
     static {
         List<Point2D> raw = List.of(
-                new Point2D(1,   609),   // Spawn links
-                new Point2D(520, 609),   // nach rechts
-                new Point2D(520, 480),   // nach oben
-                new Point2D(440, 480),   // nach links
-                new Point2D(440, 520),   // nach unten
-                new Point2D(368, 520),   // nach links
-                new Point2D(368, 239),   // nach oben
-                new Point2D(592, 240),   // nach rechts
-                new Point2D(592, 463),   // nach unten
-                new Point2D(960, 464)    // nach rechts – Ziel
+                new Point2D(1,   609),
+                new Point2D(520, 609),
+                new Point2D(520, 480),
+                new Point2D(440, 480),
+                new Point2D(440, 520),
+                new Point2D(368, 520),
+                new Point2D(368, 239),
+                new Point2D(592, 240),
+                new Point2D(592, 463),
+                new Point2D(960, 464)
         );
         List<Point2D> route = new ArrayList<>();
         for (Point2D p : raw) route.add(p.subtract(8, 8));
         ROUTE_MAP2 = Collections.unmodifiableList(route);
     }
 
-    // ── Aktive Route je nach Map ─────────────────────────────────
-
     public static List<Point2D> getROUTE() {
         return GameConfig.selectedMap == 1 ? ROUTE_MAP2 : ROUTE_MAP1;
     }
 
-    // Rückwärtskompatibel
     public static final List<Point2D> ROUTE = ROUTE_MAP1;
 
     public static int naechsterWaypointIndex(double x, double y) {
@@ -74,10 +66,9 @@ public class WaypointData {
         return Math.min(index + 1, route.size() - 1);
     }
 
-    /** Wie naechsterWaypointIndex, sucht aber nur ab Index {@code ab} vorwärts (max 8 Punkte). */
+    /** Sucht ab Index {@code ab} vorwärts bis zum Ende der Route. */
     public static int naechsterWaypointIndexAb(double x, double y, int ab) {
         List<Point2D> route = getROUTE();
-        int bis = Math.min(ab + 8, route.size());
         double minDist = Double.MAX_VALUE;
         int index = ab;
         for (int i = ab; i < route.size(); i++) {
