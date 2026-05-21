@@ -103,9 +103,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
                 SaveData.mapBeendet(GameConfig.selectedMap, GameConfig.selectedDiff,
                         GameConfig.getMuenzenBelohnung(), 50);
                 int muenzen = GameConfig.getMuenzenBelohnung();
-                FXGL.getDialogService().showMessageBox(
-                        "🎉 Gewonnen!\n+" + muenzen + " Münzen gespeichert!", () ->
-                                FXGL.getGameController().gotoMainMenu());
+                zeigeGewonnen(muenzen);
             } else if (CustomGameMenu.autoStart) {
                 FXGL.getGameTimer().runOnceAfter(() -> starteRunde(), javafx.util.Duration.seconds(3));
             } else {
@@ -537,6 +535,105 @@ public class TeacherTowerDefenseApp extends GameApplication {
         setzeUpgradePanelSichtbar(false);
     }
 
+    private void zeigeGewonnen(int muenzen) {
+        int maxRunden = roundManager.getMaxRunden();
+
+        Rectangle overlay = new Rectangle(1200, 640, Color.color(0.0, 0.05, 0.0, 0.88));
+
+        Text titelText = new Text("GEWONNEN!");
+        titelText.setFont(Font.font("Arial", FontWeight.BOLD, 46));
+        titelText.setFill(Color.web("#2ecc71"));
+        titelText.setStroke(Color.web("#1a6b3a")); titelText.setStrokeWidth(1.5);
+        titelText.setTextAlignment(TextAlignment.CENTER);
+
+        Line trenn1 = new Line(-200, 0, 200, 0);
+        trenn1.setStroke(Color.web("#27ae60")); trenn1.setStrokeWidth(1.5);
+
+        Text rundenText = new Text("Alle " + maxRunden + " Runden überstanden!");
+        rundenText.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
+        rundenText.setFill(Color.web("#ecf0f1")); rundenText.setTextAlignment(TextAlignment.CENTER);
+
+        String diffName = switch (GameConfig.selectedDiff) {
+            case 1 -> "Medium"; case 2 -> "Hard"; default -> "Easy";
+        };
+        Text diffText = new Text("Schwierigkeit: " + diffName + "  |  +" + muenzen + " Münzen");
+        diffText.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
+        diffText.setFill(Color.web("#f1c40f")); diffText.setTextAlignment(TextAlignment.CENTER);
+
+        Text statsLabel = new Text("Lehrer-Statistiken");
+        statsLabel.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+        statsLabel.setFill(Color.web("#f1c40f")); statsLabel.setTextAlignment(TextAlignment.CENTER);
+
+        VBox statsBox = baueStatsBox();
+
+        String[] lehrerNamen = {"Groebl", "Feichtner", "Winkler", "Aigner", "Gassner"};
+        java.util.List<Entity> lehrerListe = FXGL.getGameWorld()
+                .getEntitiesByType(EntityType.LEHRER).stream()
+                .filter(e -> e.hasComponent(LehrerComponent.class))
+                .toList();
+
+        int MAX = 5;
+        for (int i = 0; i < Math.min(lehrerListe.size(), MAX); i++) {
+            Entity lehrerEnt = lehrerListe.get(i);
+            LehrerComponent lc = lehrerEnt.getComponent(LehrerComponent.class);
+            int idx = lc.getLehrerTyp();
+            String name = lehrerNamen[Math.min(idx, lehrerNamen.length - 1)];
+            String stat = (idx == 4 && lehrerEnt.hasComponent(GassnerComponent.class))
+                    ? lehrerEnt.getComponent(GassnerComponent.class).getGeneratedGeld() + "€ generiert"
+                    : lc.getPops() + " Pops";
+            Text zeile = new Text(name + "  [" + lc.getUpgradeStatus() + "]  –  " + stat);
+            zeile.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+            zeile.setFill(Color.web("#bdc3c7")); zeile.setTextAlignment(TextAlignment.CENTER);
+            statsBox.getChildren().add(zeile);
+        }
+        if (lehrerListe.size() > MAX) {
+            Text mehr = new Text("... und " + (lehrerListe.size() - MAX) + " weitere");
+            mehr.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
+            mehr.setFill(Color.web("#7f8c8d")); mehr.setTextAlignment(TextAlignment.CENTER);
+            statsBox.getChildren().add(mehr);
+        }
+        if (lehrerListe.isEmpty()) {
+            Text k = new Text("Keine Lehrer platziert");
+            k.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+            k.setFill(Color.web("#7f8c8d")); statsBox.getChildren().add(k);
+        }
+
+        Line trenn2 = new Line(-200, 0, 200, 0);
+        trenn2.setStroke(Color.web("#333355")); trenn2.setStrokeWidth(1);
+
+        Rectangle btnBg = new Rectangle(220, 48, Color.web("#27ae60"));
+        btnBg.setArcWidth(10); btnBg.setArcHeight(10);
+        btnBg.setStroke(Color.web("#2ecc71")); btnBg.setStrokeWidth(1.5);
+        Text btnText = new Text("Zum Hauptmenü");
+        btnText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        btnText.setFill(Color.WHITE);
+
+        StackPane btnStack = new StackPane(btnBg, btnText);
+        btnStack.setAlignment(Pos.CENTER);
+        btnStack.setCursor(javafx.scene.Cursor.HAND);
+        btnStack.setOnMouseEntered(e -> btnBg.setFill(Color.web("#2ecc71")));
+        btnStack.setOnMouseExited(e  -> btnBg.setFill(Color.web("#27ae60")));
+        btnStack.setOnMouseClicked(e -> FXGL.getGameController().gotoMainMenu());
+
+        VBox content = new VBox(14, titelText, trenn1, rundenText, diffText,
+                statsLabel, statsBox, trenn2, btnStack);
+        content.setAlignment(Pos.CENTER);
+        content.setPadding(new Insets(30, 30, 30, 30));
+        content.setMaxWidth(460);
+
+        Rectangle panel = new Rectangle(480, 420);
+        LinearGradient grad = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
+                new Stop(0.0, Color.web("#001a00")), new Stop(1.0, Color.web("#001020")));
+        panel.setFill(grad); panel.setArcWidth(18); panel.setArcHeight(18);
+        panel.setStroke(Color.web("#27ae60")); panel.setStrokeWidth(2.5);
+
+        StackPane panelStack = new StackPane(panel, content);
+        panelStack.setAlignment(Pos.CENTER);
+        panelStack.setTranslateX(360); panelStack.setTranslateY(110);
+
+        FXGL.getGameScene().addUINodes(overlay, panelStack);
+    }
+
     private void aktualisiereRangeIndicator() {
         entferneRangeIndicator();
         if (ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
@@ -560,6 +657,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         String[] lehrerNamen = {"Groebl", "Feichtner", "Winkler", "Aigner", "Gassner"};
         String titelName = lehrerNamen[Math.min(lehrerIdx, lehrerNamen.length - 1)];
+        if (lehrerIdx == 0 && lc.getProjektilTyp().equals("ProjektilGolfball")) titelName += " [Golf]";
+        if (lehrerIdx == 2 && lc.getProjektilTyp().equals("ProjektilMusikdisk")) titelName += " [Musik]";
         if (lehrerIdx == 4 && ausgewaehlterLehrer.hasComponent(GassnerComponent.class)) {
             int generiert = ausgewaehlterLehrer.getComponent(GassnerComponent.class).getGeneratedGeld();
             upgradeTitel.setText(titelName + "  |  " + generiert + "€ generiert");
@@ -593,11 +692,15 @@ public class TeacherTowerDefenseApp extends GameApplication {
         aktualisiereDots(dotsC, lc.getStufePfadC(), lc.kannUpgradeC(), FARBE_C, FARBE_C_DIM);
 
         String[] pfadNamen = switch (lehrerIdx) {
-            case 1  -> new String[]{"Pfad A – Radius",      "Pfad B – Schaden",     "Pfad C – Speed"};
-            case 2  -> new String[]{"Pfad A – Ziele",       "Pfad B – Speed",       "Pfad C – Reichweite"};
-            case 3  -> new String[]{"Pfad A – Aura-Radius", "Pfad B – Schadensbuff","Pfad C – Tempobuff"};
-            case 4  -> new String[]{"Pfad A – Frequenz",    "Pfad B – Betrag",      "Pfad C – Synergie"};
-            default -> new String[]{"Pfad A – Speed",       "Pfad B – Schaden",     "Pfad C – Reichweite"};
+            case 1 -> new String[]{"Pfad A – Radius", "Pfad B – Schaden", "Pfad C – Speed"};
+            case 2 -> lc.getProjektilTyp().equals("ProjektilMusikdisk")
+                    ? new String[]{"Pfad A – Rhythmus", "Pfad B – Tempo", "Pfad C – Klang"}
+                    : new String[]{"Pfad A – Ziele", "Pfad B – Speed", "Pfad C – Reichweite"};
+            case 3 -> new String[]{"Pfad A – Aura-Radius", "Pfad B – Schadensbuff", "Pfad C – Tempobuff"};
+            case 4 -> new String[]{"Pfad A – Frequenz", "Pfad B – Betrag", "Pfad C – Synergie"};
+            default -> lc.getProjektilTyp().equals("ProjektilGolfball")
+                    ? new String[]{"Pfad A – Schwung", "Pfad B – Schlagkraft", "Pfad C – Präzision"}
+                    : new String[]{"Pfad A – Speed", "Pfad B – Schaden", "Pfad C – Reichweite"};
         };
 
         aktualisierePfadBtn(btnA, labelA, kostenA, pfadNamen[0], lc.nameA(), lc.kostenA(), lc.xpKostenA(), lc.istFreigeschaltetA(), lc.kannUpgradeA(), FARBE_A_DIM, FARBE_A);
@@ -832,26 +935,12 @@ public class TeacherTowerDefenseApp extends GameApplication {
         }
     }
 
-    // ============================================================
-    // GAME OVER OVERLAY
-    // ============================================================
 
     private void zeigeGameOver() {
         int erreichtRunde = roundManager.getAktuelleRundeAnzeige();
         int maxRunden     = roundManager.getMaxRunden();
 
-        Rectangle overlay = new Rectangle(1200, 640,
-                Color.color(0.0, 0.0, 0.05, 0.88));
-
-        Rectangle panel = new Rectangle(480, 420);
-        LinearGradient panelGrad = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
-                new Stop(0.0, Color.web("#1a0010")),
-                new Stop(1.0, Color.web("#0a0020")));
-        panel.setFill(panelGrad);
-        panel.setArcWidth(18);
-        panel.setArcHeight(18);
-        panel.setStroke(Color.web("#c0392b"));
-        panel.setStrokeWidth(2.5);
+        Rectangle overlay = new Rectangle(1200, 640, Color.color(0.0, 0.0, 0.05, 0.88));
 
         Text titelText = new Text("GAME OVER");
         titelText.setFont(Font.font("Arial", FontWeight.BOLD, 46));
@@ -861,8 +950,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         titelText.setTextAlignment(TextAlignment.CENTER);
 
         Line trenn1 = new Line(-200, 0, 200, 0);
-        trenn1.setStroke(Color.web("#c0392b"));
-        trenn1.setStrokeWidth(1.5);
+        trenn1.setStroke(Color.web("#c0392b")); trenn1.setStrokeWidth(1.5);
 
         Text rundenText = new Text("Runde " + erreichtRunde + " / " + maxRunden + " erreicht");
         rundenText.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
@@ -870,9 +958,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         rundenText.setTextAlignment(TextAlignment.CENTER);
 
         String diffName = switch (GameConfig.selectedDiff) {
-            case 1 -> "Medium";
-            case 2 -> "Hard";
-            default -> "Easy";
+            case 1 -> "Medium"; case 2 -> "Hard"; default -> "Easy";
         };
         Text diffText = new Text("Schwierigkeit: " + diffName);
         diffText.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
@@ -884,47 +970,49 @@ public class TeacherTowerDefenseApp extends GameApplication {
         statsLabel.setFill(Color.web("#f1c40f"));
         statsLabel.setTextAlignment(TextAlignment.CENTER);
 
-        VBox statsBox = new VBox(4);
-        statsBox.setAlignment(Pos.CENTER);
+        VBox statsBox = baueStatsBox();
 
         String[] lehrerNamen = {"Groebl", "Feichtner", "Winkler", "Aigner", "Gassner"};
-        for (Entity lehrerEnt : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
-            if (!lehrerEnt.hasComponent(LehrerComponent.class)) continue;
+        java.util.List<Entity> lehrerListe = FXGL.getGameWorld()
+                .getEntitiesByType(EntityType.LEHRER).stream()
+                .filter(e -> e.hasComponent(LehrerComponent.class))
+                .toList();
+
+        int MAX = 5;
+        for (int i = 0; i < Math.min(lehrerListe.size(), MAX); i++) {
+            Entity lehrerEnt = lehrerListe.get(i);
             LehrerComponent lc = lehrerEnt.getComponent(LehrerComponent.class);
-            int idx  = lc.getLehrerTyp();
+            int idx = lc.getLehrerTyp();
             String name = lehrerNamen[Math.min(idx, lehrerNamen.length - 1)];
-            String stat;
-            if (idx == 4 && lehrerEnt.hasComponent(GassnerComponent.class)) {
-                GassnerComponent gc = lehrerEnt.getComponent(GassnerComponent.class);
-                stat = gc.getGeneratedGeld() + "€ generiert";
-            } else {
-                stat = lc.getPops() + " Pops";
-            }
-            String upgradeStatus = lc.getUpgradeStatus();
-            Text zeile = new Text(name + "  [" + upgradeStatus + "]  –  " + stat);
+            String stat = (idx == 4 && lehrerEnt.hasComponent(GassnerComponent.class))
+                    ? lehrerEnt.getComponent(GassnerComponent.class).getGeneratedGeld() + "€ generiert"
+                    : lc.getPops() + " Pops";
+            Text zeile = new Text(name + "  [" + lc.getUpgradeStatus() + "]  –  " + stat);
             zeile.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
             zeile.setFill(Color.web("#bdc3c7"));
             zeile.setTextAlignment(TextAlignment.CENTER);
             statsBox.getChildren().add(zeile);
         }
-
-        if (statsBox.getChildren().isEmpty()) {
-            Text keineLehrer = new Text("Keine Lehrer platziert");
-            keineLehrer.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
-            keineLehrer.setFill(Color.web("#7f8c8d"));
-            statsBox.getChildren().add(keineLehrer);
+        if (lehrerListe.size() > MAX) {
+            Text mehr = new Text("... und " + (lehrerListe.size() - MAX) + " weitere");
+            mehr.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
+            mehr.setFill(Color.web("#7f8c8d"));
+            mehr.setTextAlignment(TextAlignment.CENTER);
+            statsBox.getChildren().add(mehr);
+        }
+        if (lehrerListe.isEmpty()) {
+            Text k = new Text("Keine Lehrer platziert");
+            k.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+            k.setFill(Color.web("#7f8c8d"));
+            statsBox.getChildren().add(k);
         }
 
         Line trenn2 = new Line(-200, 0, 200, 0);
-        trenn2.setStroke(Color.web("#333355"));
-        trenn2.setStrokeWidth(1);
+        trenn2.setStroke(Color.web("#333355")); trenn2.setStrokeWidth(1);
 
         Rectangle btnBg = new Rectangle(220, 48, Color.web("#27ae60"));
-        btnBg.setArcWidth(10);
-        btnBg.setArcHeight(10);
-        btnBg.setStroke(Color.web("#2ecc71"));
-        btnBg.setStrokeWidth(1.5);
-
+        btnBg.setArcWidth(10); btnBg.setArcHeight(10);
+        btnBg.setStroke(Color.web("#2ecc71")); btnBg.setStrokeWidth(1.5);
         Text btnText = new Text("Zum Hauptmenü");
         btnText.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         btnText.setFill(Color.WHITE);
@@ -936,15 +1024,18 @@ public class TeacherTowerDefenseApp extends GameApplication {
         btnStack.setOnMouseExited(e  -> btnBg.setFill(Color.web("#27ae60")));
         btnStack.setOnMouseClicked(e -> FXGL.getGameController().gotoMainMenu());
 
-        VBox content = new VBox(14,
-                titelText, trenn1,
-                rundenText, diffText,
-                statsLabel, statsBox,
-                trenn2,
-                btnStack);
+        VBox content = new VBox(14, titelText, trenn1, rundenText, diffText,
+                statsLabel, statsBox, trenn2, btnStack);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(30, 30, 30, 30));
         content.setMaxWidth(460);
+
+        Rectangle panel = new Rectangle(480, 420);
+        LinearGradient grad = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
+                new Stop(0.0, Color.web("#1a0010")), new Stop(1.0, Color.web("#0a0020")));
+        panel.setFill(grad);
+        panel.setArcWidth(18); panel.setArcHeight(18);
+        panel.setStroke(Color.web("#c0392b")); panel.setStrokeWidth(2.5);
 
         StackPane panelStack = new StackPane(panel, content);
         panelStack.setAlignment(Pos.CENTER);
@@ -952,6 +1043,91 @@ public class TeacherTowerDefenseApp extends GameApplication {
         panelStack.setTranslateY(110);
 
         FXGL.getGameScene().addUINodes(overlay, panelStack);
+    }
+
+    private VBox baueStatsBox() {
+        String[] lehrerNamen = {"Groebl", "Feichtner", "Winkler", "Aigner", "Gassner"};
+
+        java.util.List<Entity> lehrerListe = FXGL.getGameWorld()
+                .getEntitiesByType(EntityType.LEHRER).stream()
+                .filter(e -> e.hasComponent(LehrerComponent.class))
+                .toList();
+
+        // Sortieren: bester Lehrer zuerst
+        java.util.List<Entity> sortiert = new java.util.ArrayList<>(lehrerListe);
+        sortiert.sort((a, b) -> {
+            LehrerComponent lcA = a.getComponent(LehrerComponent.class);
+            LehrerComponent lcB = b.getComponent(LehrerComponent.class);
+            int wertA = (lcA.getLehrerTyp() == 4 && a.hasComponent(GassnerComponent.class))
+                    ? a.getComponent(GassnerComponent.class).getGeneratedGeld() : lcA.getPops();
+            int wertB = (lcB.getLehrerTyp() == 4 && b.hasComponent(GassnerComponent.class))
+                    ? b.getComponent(GassnerComponent.class).getGeneratedGeld() : lcB.getPops();
+            return Integer.compare(wertB, wertA);
+        });
+
+        int totalPops = lehrerListe.stream()
+                .filter(e -> e.getComponent(LehrerComponent.class).getLehrerTyp() != 4)
+                .mapToInt(e -> e.getComponent(LehrerComponent.class).getPops())
+                .sum();
+        int totalGold = lehrerListe.stream()
+                .filter(e -> e.getComponent(LehrerComponent.class).getLehrerTyp() == 4
+                        && e.hasComponent(GassnerComponent.class))
+                .mapToInt(e -> e.getComponent(GassnerComponent.class).getGeneratedGeld())
+                .sum();
+
+        VBox statsBox = new VBox(4);
+        statsBox.setAlignment(Pos.CENTER);
+
+        if (!lehrerListe.isEmpty()) {
+            String summaryStr = "💥 " + totalPops + " Pops gesamt";
+            if (totalGold > 0) summaryStr += "   💰 " + totalGold + "€ generiert";
+            Text summary = new Text(summaryStr);
+            summary.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+            summary.setFill(Color.web("#f1c40f"));
+            summary.setTextAlignment(TextAlignment.CENTER);
+            statsBox.getChildren().add(summary);
+
+            Line sep = new Line(-185, 0, 185, 0);
+            sep.setStroke(Color.web("#444466"));
+            sep.setStrokeWidth(1);
+            statsBox.getChildren().add(sep);
+        }
+
+        int MAX = 5;
+        for (int i = 0; i < Math.min(sortiert.size(), MAX); i++) {
+            Entity lehrerEnt = sortiert.get(i);
+            LehrerComponent lc = lehrerEnt.getComponent(LehrerComponent.class);
+            int idx = lc.getLehrerTyp();
+            String name = lehrerNamen[Math.min(idx, lehrerNamen.length - 1)];
+            String stat;
+            if (idx == 4 && lehrerEnt.hasComponent(GassnerComponent.class)) {
+                stat = lehrerEnt.getComponent(GassnerComponent.class).getGeneratedGeld() + "€ generiert";
+            } else {
+                stat = lc.getPops() + " Pops";
+            }
+            String medaille = i == 0 ? "🥇 " : i == 1 ? "🥈 " : i == 2 ? "🥉 " : "     ";
+            Text zeile = new Text(medaille + name + "  [" + lc.getUpgradeStatus() + "]  –  " + stat);
+            zeile.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+            zeile.setFill(i < 3 ? Color.web("#ecf0f1") : Color.web("#bdc3c7"));
+            zeile.setTextAlignment(TextAlignment.CENTER);
+            statsBox.getChildren().add(zeile);
+        }
+        if (sortiert.size() > MAX) {
+            Text mehr = new Text("... und " + (sortiert.size() - MAX) + " weitere");
+            mehr.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
+            mehr.setFill(Color.web("#7f8c8d"));
+            mehr.setTextAlignment(TextAlignment.CENTER);
+            statsBox.getChildren().add(mehr);
+        }
+        if (lehrerListe.isEmpty()) {
+            Text keineLehrer = new Text("Keine Lehrer platziert");
+            keineLehrer.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+            keineLehrer.setFill(Color.web("#7f8c8d"));
+            keineLehrer.setTextAlignment(TextAlignment.CENTER);
+            statsBox.getChildren().add(keineLehrer);
+        }
+
+        return statsBox;
     }
 
     public static void main(String[] args) { launch(args); }

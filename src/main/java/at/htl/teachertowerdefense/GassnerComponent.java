@@ -64,7 +64,7 @@ public class GassnerComponent extends Component {
                 .filter(e -> e.hasComponent(GassnerComponent.class))
                 .filter(e -> {
                     LehrerComponent lc = e.getComponent(LehrerComponent.class);
-                    return lc.getStufePfadC() >= stufeC;
+                    return lc.getStufePfadC() >= 1;
                 })
                 .count();
 

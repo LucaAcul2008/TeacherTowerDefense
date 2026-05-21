@@ -92,9 +92,9 @@ public class LehrerComponent extends Component {
                 multiTarget = LehrerUpgradePfade.BASE_MULTI_TARGET_L5;
             }
             default -> { // 0 = Groebl – Allrounder
-                pfadA = LehrerUpgradePfade.LEHRER1_PFAD_A;
-                pfadB = LehrerUpgradePfade.LEHRER1_PFAD_B;
-                pfadC = LehrerUpgradePfade.LEHRER1_PFAD_C;
+                pfadA = nutztSkin ? LehrerUpgradePfade.LEHRER1_PFAD_A_GOLF : LehrerUpgradePfade.LEHRER1_PFAD_A;
+                pfadB = nutztSkin ? LehrerUpgradePfade.LEHRER1_PFAD_B_GOLF : LehrerUpgradePfade.LEHRER1_PFAD_B;
+                pfadC = nutztSkin ? LehrerUpgradePfade.LEHRER1_PFAD_C_GOLF : LehrerUpgradePfade.LEHRER1_PFAD_C;
                 range = LehrerUpgradePfade.BASE_RANGE_L1;
                 shootDelay = LehrerUpgradePfade.BASE_SHOOT_DELAY_L1;
                 damage = LehrerUpgradePfade.BASE_DAMAGE_L1;

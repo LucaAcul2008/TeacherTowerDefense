@@ -256,14 +256,14 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
     @Spawns("ProjektilGolfball")
     public Entity newProjektilGolfball(SpawnData data) {
-        Entity target = data.get("target");
-        int damage = data.hasKey("damage") ? (int) data.get("damage") : 1;
+        Entity  target = data.get("target");
+        int     damage = data.hasKey("damage") ? (int) data.get("damage") : 1;
+        Point2D turret = new Point2D(data.getX(), data.getY());
 
         javafx.scene.Node view;
         try {
-            // Lädt DEIN Bild: projektil_golfball.png
             javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(FXGL.image("projektil_golfball.png"));
-            iv.setFitWidth(16); iv.setFitHeight(16);
+            iv.setFitWidth(20); iv.setFitHeight(20);
             view = iv;
         } catch (Exception e) {
             javafx.scene.shape.Circle c = new javafx.scene.shape.Circle(8, javafx.scene.paint.Color.WHITE);
@@ -271,7 +271,6 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
             view = c;
         }
 
-        // Rotiert in der Luft
         javafx.animation.RotateTransition rot = new javafx.animation.RotateTransition(
                 javafx.util.Duration.millis(400), view);
         rot.setByAngle(360); rot.setCycleCount(javafx.animation.Animation.INDEFINITE);
@@ -281,7 +280,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
                 .type(EntityType.PROJEKTIL)
                 .view(view)
                 .bbox(new HitBox("body", new Point2D(-8, -8), BoundingShape.circle(8)))
-                .with(new FloppyComponent(target, damage))
+                .with(new BoomerangComponent(target, damage, turret))
                 .zIndex(150)
                 .build();
     }

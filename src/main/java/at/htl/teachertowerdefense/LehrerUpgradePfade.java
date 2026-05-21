@@ -50,6 +50,28 @@ public class LehrerUpgradePfade {
             new LehrerUpgrade        ("360° Fischsturm",       800,  700,  50, -0.1, 0, 2, false)
     );
 
+    public static final List<LehrerUpgrade> LEHRER1_PFAD_A_GOLF = List.of(
+            LehrerUpgrade.speed  ("Schneller Schwung",          100,    0, -0.15),
+            LehrerUpgrade.speed  ("Power-Swing",                200,   50, -0.15),
+            LehrerUpgrade.speed  ("Eagle-Drive",                350,  150, -0.15),
+            LehrerUpgrade.speed  ("Hole-in-One",                600,  350, -0.15),
+            LehrerUpgrade.spezial("Pro-Tour-Abschlag",         1000,  700        )
+    );
+    public static final List<LehrerUpgrade> LEHRER1_PFAD_B_GOLF = List.of(
+            LehrerUpgrade.damage("Sandwedge",               80,    0,  1),
+            LehrerUpgrade.damage("Eisenwedge",             180,   50,  1),
+            LehrerUpgrade.damage("Titanschläger",          320,  150,  2),
+            LehrerUpgrade.damage("Raumfahrt-Driver",       550,  350,  2),
+            LehrerUpgrade.damage("Atomarer Abschlag",     1000,  700,  5)
+    );
+    public static final List<LehrerUpgrade> LEHRER1_PFAD_C_GOLF = List.of(
+            LehrerUpgrade.range      ("Präzisions-Putt",        80,    0,  25),
+            LehrerUpgrade.multiTarget("Split-Fairway",         150,   50,   1),
+            LehrerUpgrade.range      ("Long-Drive-Training",   250,  150,  35),
+            LehrerUpgrade.multiTarget("Salven-Abschlag",       400,  350,   2),
+            new LehrerUpgrade        ("360° Golfsturm",        800,  700,  50, -0.1, 0, 2, false)
+    );
+
     // ── LEHRER 2: FEICHTNER – Alchemistin / Potions ──────────────
     public static final List<LehrerUpgrade> LEHRER2_PFAD_A = List.of(
             LehrerUpgrade.range("Größere Flasche",          120,    0,  20),
