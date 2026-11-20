@@ -14,7 +14,9 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
     - Winkler – schießt Floppy Disks (schnelle Feuerrate, viele Ziele)
 - **5-2-0 Upgrade-Pfade** pro Lehrer (Pfad A, B, C mit je 5 Stufen)
 - **10 Runden** mit 7 verschiedenen Schülertypen (von Erstklässler bis Schulleiter)
-- **2 Karten** (HTL Saalfelden, City) mit eigenen Wegstrecken
+- **3 Karten** (HTL Saalfelden, City, Schulausflug) mit eigenen Wegstrecken
+    - Schulausflug wird freigeschaltet, sobald City auf Easy geschafft ist
+    - Map3.tmx wird von `tools/gen_map3.py` erzeugt (Vorschau: `java tools/TmxTool.java render ...`)
 - **Meta-Progression**: Münzen & XP bleiben zwischen Spielsessions erhalten
 - **Lehrer-Skins** kaufbar im Hauptmenü
 - **3 Schwierigkeitsgrade** (Easy / Medium / Hard) mit unterschiedlichem Startgeld und Schüler-HP

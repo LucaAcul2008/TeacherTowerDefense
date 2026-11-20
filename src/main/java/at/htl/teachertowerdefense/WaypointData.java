@@ -49,8 +49,32 @@ public class WaypointData {
         ROUTE_MAP2 = Collections.unmodifiableList(route);
     }
 
+    // ── MAP 3: Schulausflug ──────────────────────────────────────
+    // Mittellinie des 3 Kacheln breiten Wegs aus Map3.tmx (wird von tools/gen_map3.py erzeugt)
+    private static final List<Point2D> ROUTE_MAP3;
+    static {
+        List<Point2D> raw = List.of(
+                new Point2D(-8,  216),
+                new Point2D(264, 216),
+                new Point2D(264, 504),
+                new Point2D(520, 504),
+                new Point2D(520, 152),
+                new Point2D(744, 152),
+                new Point2D(744, 392),
+                new Point2D(968, 392)
+        );
+        List<Point2D> route = new ArrayList<>();
+        // Entity-Position = linke obere Ecke der Hitbox → so verschieben, dass die Schüler mittig laufen
+        for (Point2D p : raw) route.add(p.subtract(14, 16));
+        ROUTE_MAP3 = Collections.unmodifiableList(route);
+    }
+
     public static List<Point2D> getROUTE() {
-        return GameConfig.selectedMap == 1 ? ROUTE_MAP2 : ROUTE_MAP1;
+        return switch (GameConfig.selectedMap) {
+            case 1  -> ROUTE_MAP2;
+            case 2  -> ROUTE_MAP3;
+            default -> ROUTE_MAP1;
+        };
     }
 
     public static final List<Point2D> ROUTE = ROUTE_MAP1;

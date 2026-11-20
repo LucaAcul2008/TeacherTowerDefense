@@ -20,7 +20,7 @@ public class CustomMainMenu extends FXGLMenu {
     private int selectedMap  = 0;
     private int selectedDiff = 0; // 0=Easy, 1=Medium, 2=Hard
 
-    private static final String[] MAP_NAMEN = { "HTL Saalfelden", "City", "Map 3" };
+    private static final String[] MAP_NAMEN = { "HTL Saalfelden", "City", "Schulausflug" };
     private static final String[] DIFF_NAMEN = { "Easy", "Medium", "Hard" };
     private static final Color[]  DIFF_FARBEN = {
             Color.web("#27ae60"), Color.web("#e67e22"), Color.web("#c0392b")
@@ -187,12 +187,8 @@ public class CustomMainMenu extends FXGLMenu {
             sterneTexte[i] = sterneText; // Referenz speichern für späteren Refresh
 
             // Gesperrt-Overlay
-            Text lockText;
-            if (i == 2) {
-                lockText = mkText("🚧 In Bearbeitung", 0, 0, Color.web("#e67e22"), 11, false);
-            } else {
-                lockText = frei ? new Text("") : mkText("🔒 Gesperrt", 0, 0, Color.web("#888888"), 11, false);
-            }
+            Text lockText = (frei || i == 0) ? new Text("")
+                    : mkText("🔒 " + MAP_NAMEN[i - 1] + " auf Easy schaffen", 0, 0, Color.web("#888888"), 11, false);
 
             VBox karte = new VBox(8, name, sterneText, lockText);
             karte.setAlignment(Pos.CENTER);
@@ -201,7 +197,7 @@ public class CustomMainMenu extends FXGLMenu {
             karte.setTranslateY(H - 260);
 
             // Klick
-            if (frei && i != 2) {
+            if (frei) {
                 border.setOnMouseClicked(e -> waehleMap(idx));
                 karte.setOnMouseClicked(e -> waehleMap(idx));
                 border.setOnMouseEntered(e -> { if (idx != selectedMap) border.setFill(Color.color(0.2,0.2,0.35,0.9)); });
