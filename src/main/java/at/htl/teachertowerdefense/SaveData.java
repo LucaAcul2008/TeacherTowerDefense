@@ -8,8 +8,8 @@ public class SaveData {
 
     public static int         muenzen             = 0;
     public static int[]       lehrerXP            = new int[5];
-    public static boolean[][] abgeschlossen       = new boolean[3][3];
-    public static boolean[]   mapFreigeschaltet   = { true, false, false };
+    public static boolean[][] abgeschlossen       = new boolean[GameConfig.ANZAHL_MAPS][3];
+    public static boolean[]   mapFreigeschaltet   = neueMapFreischaltung();
 
     private static boolean[][][] upgradesFrei = new boolean[5][3][5];
 
@@ -26,11 +26,18 @@ public class SaveData {
     // Laden / Speichern
     // -------------------------------------------------------
 
+    /** Nur die erste Map ist am Anfang frei. */
+    private static boolean[] neueMapFreischaltung() {
+        boolean[] frei = new boolean[GameConfig.ANZAHL_MAPS];
+        frei[0] = true;
+        return frei;
+    }
+
     public static void laden() {
         muenzen = PREFS.getInt("muenzen", 0);
         for (int i = 0; i < lehrerXP.length; i++)
             lehrerXP[i] = PREFS.getInt("xp" + i, 0);
-        for (int m = 0; m < 3; m++) {
+        for (int m = 0; m < GameConfig.ANZAHL_MAPS; m++) {
             mapFreigeschaltet[m] = PREFS.getBoolean("map_frei_" + m, m == 0);
             for (int s = 0; s < 3; s++)
                 abgeschlossen[m][s] = PREFS.getBoolean("abg_" + m + "_" + s, false);
@@ -55,7 +62,7 @@ public class SaveData {
         PREFS.putInt("muenzen", muenzen);
         for (int i = 0; i < lehrerXP.length; i++)
             PREFS.putInt("xp" + i, lehrerXP[i]);
-        for (int m = 0; m < 3; m++) {
+        for (int m = 0; m < GameConfig.ANZAHL_MAPS; m++) {
             PREFS.putBoolean("map_frei_" + m, mapFreigeschaltet[m]);
             for (int s = 0; s < 3; s++)
                 PREFS.putBoolean("abg_" + m + "_" + s, abgeschlossen[m][s]);
@@ -144,8 +151,8 @@ public class SaveData {
         try { PREFS.clear(); } catch (Exception ignored) {}
         muenzen = 0;
         lehrerXP = new int[5];
-        abgeschlossen = new boolean[3][3];
-        mapFreigeschaltet = new boolean[]{ true, false, false };
+        abgeschlossen = new boolean[GameConfig.ANZAHL_MAPS][3];
+        mapFreigeschaltet = neueMapFreischaltung();
         upgradesFrei = new boolean[5][3][5];
         aktiverSkin = new int[3];
         skinFreigeschaltet = new boolean[3][2];

@@ -30,23 +30,40 @@ public class WaypointData {
     }
 
     // ── MAP 2: City ──────────────────────────────────────────────
-    private static final List<Point2D> ROUTE_MAP2;
-    static {
-        List<Point2D> raw = List.of(
-                new Point2D(1,   609),
-                new Point2D(520, 609),
-                new Point2D(520, 480),
-                new Point2D(440, 480),
-                new Point2D(440, 520),
-                new Point2D(368, 520),
-                new Point2D(368, 239),
-                new Point2D(592, 240),
-                new Point2D(592, 463),
-                new Point2D(960, 464)
-        );
+    // Mittellinien der Straßen und Parkplatz-Fahrspuren (aus City.tmx abgelesen):
+    // unten rein, über den Parkplatz der Einbahn-Runde nach (rechts hoch, oben links,
+    // Mitte runter, unten links raus), dann links hoch, oben um den Brunnen, rechts raus.
+    private static final List<Point2D> ROUTE_MAP2 = verschiebe(List.of(
+            new Point2D(-8,  592),
+            new Point2D(520, 592),
+            new Point2D(520, 480),
+            new Point2D(440, 480),
+            new Point2D(440, 520),
+            new Point2D(352, 520),
+            new Point2D(352, 222),
+            new Point2D(608, 222),
+            new Point2D(608, 448),
+            new Point2D(968, 448)
+    ));
+
+    // ── HTL Saalfelden (Campus.tmx, erzeugt von tools/gen_campus.py) ──
+    // Start am Haupteingang der HTL, durch das Tor im Schulzaun, Ziel ist die Bushaltestelle rechts.
+    // Muss zu ROUTE in tools/gen_campus.py passen (das Skript gibt diese Werte aus).
+    private static final List<Point2D> ROUTE_CAMPUS = verschiebe(List.of(
+            new Point2D(520, 136),
+            new Point2D(520, 248),
+            new Point2D(104, 248),
+            new Point2D(104, 376),
+            new Point2D(712, 376),
+            new Point2D(712, 520),
+            new Point2D(984, 520)
+    ));
+
+    /** Entity-Position = linke obere Ecke der Hitbox → so verschieben, dass die Schüler mittig laufen. */
+    private static List<Point2D> verschiebe(List<Point2D> mittellinie) {
         List<Point2D> route = new ArrayList<>();
-        for (Point2D p : raw) route.add(p.subtract(8, 8));
-        ROUTE_MAP2 = Collections.unmodifiableList(route);
+        for (Point2D p : mittellinie) route.add(p.subtract(14, 16));
+        return Collections.unmodifiableList(route);
     }
 
     // ── MAP 3: Schulausflug ──────────────────────────────────────
@@ -73,7 +90,8 @@ public class WaypointData {
         return switch (GameConfig.selectedMap) {
             case 1  -> ROUTE_MAP2;
             case 2  -> ROUTE_MAP3;
-            default -> ROUTE_MAP1;
+            case 3  -> ROUTE_MAP1;      // Teichwiese (ursprüngliche erste Map)
+            default -> ROUTE_CAMPUS;    // HTL Saalfelden
         };
     }
 

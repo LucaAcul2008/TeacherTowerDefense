@@ -20,7 +20,7 @@ public class CustomMainMenu extends FXGLMenu {
     private int selectedMap  = 0;
     private int selectedDiff = 0; // 0=Easy, 1=Medium, 2=Hard
 
-    private static final String[] MAP_NAMEN = { "HTL Saalfelden", "City", "Schulausflug" };
+    private static final String[] MAP_NAMEN = { "HTL Saalfelden", "City", "Schulausflug", "Teichwiese" };
     private static final String[] DIFF_NAMEN = { "Easy", "Medium", "Hard" };
     private static final Color[]  DIFF_FARBEN = {
             Color.web("#27ae60"), Color.web("#e67e22"), Color.web("#c0392b")
@@ -31,9 +31,9 @@ public class CustomMainMenu extends FXGLMenu {
     private Text muenzenText;
 
     // Map-Karten
-    private VBox[] mapKarten = new VBox[3];
-    private Rectangle[] mapBorders = new Rectangle[3];
-    private Text[] sterneTexte = new Text[3];
+    private VBox[] mapKarten = new VBox[GameConfig.ANZAHL_MAPS];
+    private Rectangle[] mapBorders = new Rectangle[GameConfig.ANZAHL_MAPS];
+    private Text[] sterneTexte = new Text[GameConfig.ANZAHL_MAPS];
 
     // Diff-Buttons
     private Rectangle[] diffBtns = new Rectangle[3];
@@ -54,18 +54,24 @@ public class CustomMainMenu extends FXGLMenu {
 
         // ── Hintergrundbild ──────────────────────────────────────
         try {
-            ImageView bg = new ImageView(FXGL.image("menu_bg.png"));
-            bg.setFitWidth(W); bg.setFitHeight(H);
-            bg.setPreserveRatio(false);
-            getContentRoot().getChildren().add(bg);
+            // Bild füllt den ganzen Bildschirm, ohne verzerrt zu werden (Überstand wird abgeschnitten)
+            javafx.scene.image.Image img = FXGL.image("menu_bg.png");
+            double skala = Math.max(W / img.getWidth(), H / img.getHeight());
+            ImageView bg = new ImageView(img);
+            bg.setFitWidth(img.getWidth() * skala); bg.setFitHeight(img.getHeight() * skala);
+            bg.setTranslateX((W - img.getWidth() * skala) / 2);
+            bg.setTranslateY((H - img.getHeight() * skala) / 2);
+            javafx.scene.Group bgGruppe = new javafx.scene.Group(bg);
+            bgGruppe.setClip(new Rectangle(W, H));
+            getContentRoot().getChildren().add(bgGruppe);
         } catch (Exception e) {
             Rectangle bg = new Rectangle(W, H, Color.web("#1a2a1a"));
             getContentRoot().getChildren().add(bg);
         }
 
         // ── Dunkler Overlay unten ────────────────────────────────
-        Rectangle overlay = new Rectangle(W, 320, Color.color(0, 0, 0, 0.72));
-        overlay.setTranslateY(H - 320);
+        Rectangle overlay = new Rectangle(W, 344, Color.color(0, 0, 0, 0.72));
+        overlay.setTranslateY(H - 344);
         getContentRoot().getChildren().add(overlay);
 
         // ── Diamanten (Skin-Währung) oben links ──────────────────
@@ -156,15 +162,16 @@ public class CustomMainMenu extends FXGLMenu {
 
 
         // ── MAP AUSWAHL ──────────────────────────────────────────
-        Text mapTitel = mkText("KARTE WÄHLEN", W/2.0 - 100, H - 265,
+        Text mapTitel = mkText("KARTE WÄHLEN", W/2.0 - 100, H - 289,
                 Color.WHITE, 13, true);
         mapTitel.setOpacity(0.7);
         getContentRoot().getChildren().add(mapTitel);
 
+        int anzahl = GameConfig.ANZAHL_MAPS;
         double karteW = 200, karteH = 130;
-        double startX = W / 2.0 - (karteW * 3 + 20 * 2) / 2.0;
+        double startX = W / 2.0 - (karteW * anzahl + 20 * (anzahl - 1)) / 2.0;
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < anzahl; i++) {
             final int idx = i;
             boolean frei = SaveData.mapFreigeschaltet[i];
             int sterne = SaveData.getSterne(i);
@@ -195,7 +202,7 @@ public class CustomMainMenu extends FXGLMenu {
             karte.setAlignment(Pos.CENTER);
             karte.setPrefSize(karteW, karteH);
             karte.setTranslateX(startX + i * (karteW + 20));
-            karte.setTranslateY(H - 260);
+            karte.setTranslateY(H - 284);
 
             // Klick
             if (frei) {
@@ -207,14 +214,14 @@ public class CustomMainMenu extends FXGLMenu {
 
             // Border hinter VBox legen
             border.setTranslateX(startX + i * (karteW + 20));
-            border.setTranslateY(H - 260);
+            border.setTranslateY(H - 284);
 
             mapKarten[i] = karte;
             getContentRoot().getChildren().addAll(border, karte);
         }
 
         // ── SCHWIERIGKEIT ────────────────────────────────────────
-        Text diffTitel = mkText("SCHWIERIGKEIT", W/2.0 - 100, H - 110,
+        Text diffTitel = mkText("SCHWIERIGKEIT", W/2.0 - 100, H - 134,
                 Color.WHITE, 13, true);
         diffTitel.setOpacity(0.7);
         getContentRoot().getChildren().add(diffTitel);
@@ -230,12 +237,12 @@ public class CustomMainMenu extends FXGLMenu {
             btn.setStroke(i == 0 ? DIFF_FARBEN[i].brighter() : Color.web("#444466"));
             btn.setStrokeWidth(1.5);
             btn.setTranslateX(diffStartX + i * (diffW + 12));
-            btn.setTranslateY(H - 95);
+            btn.setTranslateY(H - 119);
             diffBtns[i] = btn;
 
             String label = DIFF_NAMEN[i] + "  +" + DIFF_MUENZEN[i] + GameConfig.DIAMANT;
             Text txt = mkText(label,
-                    diffStartX + i * (diffW + 12) + 10, H - 70,
+                    diffStartX + i * (diffW + 12) + 10, H - 94,
                     i == 0 ? Color.WHITE : Color.GRAY, 11, true);
             diffTexts[i] = txt;
 
@@ -246,14 +253,19 @@ public class CustomMainMenu extends FXGLMenu {
         }
 
         // ── START BUTTON ─────────────────────────────────────────
-        startBtn = new Rectangle(220, 52, Color.web("#27ae60"));
+        // 15px Abstand zu den Schwierigkeits-Buttons, 18px zum unteren Rand
+        double startY = H - 64;
+        startBtn = new Rectangle(220, 46, Color.web("#27ae60"));
         startBtn.setArcWidth(10); startBtn.setArcHeight(10);
         startBtn.setTranslateX(W / 2.0 - 110);
-        startBtn.setTranslateY(H - 42);
+        startBtn.setTranslateY(startY);
         DropShadow glow = new DropShadow(15, Color.web("#2ecc71"));
         startBtn.setEffect(glow);
 
-        startText = mkText("▶   SPIELEN", W / 2.0 - 60, H - 12, Color.WHITE, 16, true);
+        startText = mkText("▶   SPIELEN", 0, 0, Color.WHITE, 16, true);
+        startText.setTextOrigin(javafx.geometry.VPos.CENTER);   // genau mittig im Button
+        startText.setTranslateX(W / 2.0 - startText.getLayoutBounds().getWidth() / 2);
+        startText.setTranslateY(startY + 23);
 
         startBtn.setOnMouseClicked(e -> starteSpiel());
         startText.setOnMouseClicked(e -> starteSpiel());
@@ -299,7 +311,7 @@ public class CustomMainMenu extends FXGLMenu {
 
     private void waehleMap(int idx) {
         selectedMap = idx;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < GameConfig.ANZAHL_MAPS; i++) {
             boolean sel = i == idx;
             mapBorders[i].setStroke(sel ? Color.web("#f1c40f") : Color.web("#444466"));
             mapBorders[i].setStrokeWidth(sel ? 2.5 : 1.5);

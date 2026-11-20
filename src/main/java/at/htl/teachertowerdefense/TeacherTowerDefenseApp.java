@@ -73,12 +73,16 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
     // Lehrer-Limit-Anzeige im Shop + Hinweis-Text unten auf der Karte
     private Text lehrerZaehler;
+
+    // Infoleiste unter der Karte (nur wenn der Monitor höher ist als 1200x640)
+    private Text wellenInfo;
     private javafx.scene.Node hinweis;
 
     @Override
     protected void initSettings(GameSettings settings) {
-        settings.setWidth(1200);
-        settings.setHeight(640);
+        GameConfig.passeAnBildschirmAn();
+        settings.setWidth(GameConfig.breite);
+        settings.setHeight(GameConfig.hoehe);
         settings.setTitle("Teacher Tower Defense");
         settings.setVersion("0.1");
         settings.setFullScreenAllowed(true);
@@ -109,6 +113,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         SaveData.mapFreigeschaltet[1] = true;
         FXGL.getGameWorld().addEntityFactory(new TeacherTowerDefenseFactory());
         FXGL.setLevelFromMap(GameConfig.getMapDatei());
+        if (GameConfig.selectedMap == 0) zeigeHtlSchriftzug();
 
 
 
@@ -119,6 +124,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         roundManager.setOnRundeEnde(() -> {
             FXGL.set("runde", roundManager.getAktuelleRundeAnzeige());
             if (spielVorbei) return;
+            aktualisiereWellenInfo();
             if (!roundManager.isSpielEnde()) Sounds.play("runde_geschafft");
             if (roundManager.isSpielEnde()) {
                 beendeSpiel();
@@ -201,8 +207,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
             double wx = FXGL.getInput().getMouseXWorld();
             double wy = FXGL.getInput().getMouseYWorld();
 
-            // 2. Prüfen, ob der Klick im Shop-Bereich (rechts von X=960) war
-            if (wx >= 960) return;
+            // 2. Klicks im Shop / in der Infoleiste ignorieren
+            if (!GameConfig.aufKarte(wx, wy)) return;
 
             Entity gefunden = null;
             for (Entity lehrer : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
@@ -255,7 +261,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         textRunde.textProperty().bind(FXGL.getip("runde").asString("Runde %d / " + roundManager.getMaxRunden()));
 
         // === SHOP PANEL ===
-        Rectangle shopPanel = new Rectangle(240, 640, Color.web("#1a1a2e"));
+        Rectangle shopPanel = new Rectangle(GameConfig.breite - 960, GameConfig.hoehe, Color.web("#1a1a2e"));
         shopPanel.setTranslateX(960);
 
         Text shopTitel = new Text("LEHRER SHOP");
@@ -349,10 +355,12 @@ public class TeacherTowerDefenseApp extends GameApplication {
         setzeUpgradePanelSichtbar(false);
 
         // === START BUTTON ===
+        // Start/Tempo/Skins sitzen am unteren Rand der Shop-Spalte (auch wenn der Monitor höher ist)
+        double UY = GameConfig.hoehe - GameConfig.KARTE_HOEHE;
         startButton = new Rectangle(110, 40, Color.web("#27ae60"));
         startButton.setArcWidth(8); startButton.setArcHeight(8);
-        startButton.setTranslateX(PX); startButton.setTranslateY(540);
-        startButtonText = mkText("▶  START", PX + 12, 567, Color.WHITE, 13, true);
+        startButton.setTranslateX(PX); startButton.setTranslateY(536 + UY);
+        startButtonText = mkText("▶  START", PX + 12, 562 + UY, Color.WHITE, 13, true);
         startButton.setCursor(javafx.scene.Cursor.HAND);
         startButtonText.setCursor(javafx.scene.Cursor.HAND);
         startButton.setOnMouseClicked(e -> starteRunde());
@@ -362,18 +370,18 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         // === SPEED BUTTON ===
         speedBtn = new Rectangle(100, 40, Color.web("#1a1a2e"));
-        speedBtn.setTranslateX(PX + 120); speedBtn.setTranslateY(540);
+        speedBtn.setTranslateX(PX + 120); speedBtn.setTranslateY(536 + UY);
         speedBtn.setArcWidth(8); speedBtn.setArcHeight(8);
         speedBtn.setStroke(Color.web("#333355")); speedBtn.setStrokeWidth(1);
-        speedText = mkText("▶▶  1x", PX + 134, 567, Color.WHITE, 13, true);
+        speedText = mkText("▶▶  1x", PX + 134, 562 + UY, Color.WHITE, 13, true);
         speedBtn.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
         speedText.setOnMouseClicked(e -> toggleSpeed(speedBtn, speedText));
 
         // === INLINE SKIN BUTTONS ===
-        Line skinTrenn = new Line(965, 588, 1195, 588);
+        Line skinTrenn = new Line(965, 583 + UY, 1195, 583 + UY);
         skinTrenn.setStroke(Color.web("#333355")); skinTrenn.setStrokeWidth(1);
 
-        Text skinLabel = mkText("🎨 SKINS:", PX + 4, 610, Color.web("#9b59b6"), 10, true);
+        Text skinLabel = mkText("🎨 SKINS", PX + 4, 597 + UY, Color.web("#9b59b6"), 10, true);
 
         Rectangle[] skinBtns  = new Rectangle[3];
         Text[]      skinTexts = new Text[3];
@@ -383,18 +391,21 @@ public class TeacherTowerDefenseApp extends GameApplication {
             boolean gekauft = SaveData.skinFreigeschaltet[i][1];
             boolean aktiv   = SaveData.aktiverSkin[i] == 1;
 
-            skinBtns[i] = new Rectangle(56, 34,
+            // 3 Buttons à 72px + 5px Abstand = 226px → passen in die 230px breite Spalte
+            skinBtns[i] = new Rectangle(72, 30,
                     aktiv    ? Color.web("#6c3483")
                             : gekauft ? Color.web("#2c3e7a")
                             : (SaveData.muenzen >= SaveData.SKIN_PREISE[i]
                             ? Color.web("#1a3a1a")
                             : Color.color(0.1, 0.1, 0.1, 0.9)));
             skinBtns[i].setArcWidth(6); skinBtns[i].setArcHeight(6);
-            skinBtns[i].setTranslateX(PX + 60 + i * 66); skinBtns[i].setTranslateY(595);
+            skinBtns[i].setTranslateX(PX + 2 + i * 77); skinBtns[i].setTranslateY(603 + UY);
             skinBtns[i].setStroke(Color.web("#9b59b6")); skinBtns[i].setStrokeWidth(1);
 
             String btnLabel = gekauft ? (aktiv ? "✓ AN" : "○ AUS") : SaveData.SKIN_PREISE[i] + GameConfig.DIAMANT;
-            skinTexts[i] = mkText(btnLabel, PX + 64 + i * 66, 617, Color.WHITE, 10, true);
+            skinTexts[i] = mkText(btnLabel, 0, 0, Color.WHITE, 11, true);
+            skinTexts[i].setTextOrigin(javafx.geometry.VPos.CENTER);
+            zentriereSkinText(skinTexts[i], PX + 2 + i * 77, 603 + UY);
 
             skinBtns[i].setOnMouseClicked(e -> {
                 if (SaveData.kaufeSkin(idx)) {
@@ -405,13 +416,39 @@ public class TeacherTowerDefenseApp extends GameApplication {
                                 : jGekauft ? Color.web("#2c3e7a")
                                 : Color.color(0.1, 0.1, 0.1, 0.9));
                         skinTexts[j].setText(jGekauft ? (jAktiv ? "✓ AN" : "○ AUS") : SaveData.SKIN_PREISE[j] + GameConfig.DIAMANT);
+                        zentriereSkinText(skinTexts[j], PX + 2 + j * 77, 603 + UY);
                     }
                 }
             });
             skinTexts[i].setOnMouseClicked(skinBtns[i].getOnMouseClicked());
         }
 
-        Text settingsHint = mkText("ESC Menü · LEER Start · F Tempo · M Musik", PX + 4, 637, Color.web("#7777aa"), 9, false);
+        // Hinweis rechts in der SKINS-Zeile (früher ganz unten → abgeschnitten)
+        Text settingsHint = mkText("ESC Menü · LEER Start · F Tempo", 0, 597 + UY, Color.web("#7777aa"), 9, false);
+        settingsHint.setTranslateX(PX + 228 - settingsHint.getLayoutBounds().getWidth());
+
+        // === INFOLEISTE unter der Karte (nutzt den Platz, der sonst schwarzer Rand wäre) ===
+        double leisteH = GameConfig.hoehe - GameConfig.KARTE_HOEHE;
+        wellenInfo = null;
+        if (leisteH >= 24) {
+            double mitteY = GameConfig.KARTE_HOEHE + leisteH / 2;
+            Rectangle leiste = new Rectangle(GameConfig.KARTE_BREITE, leisteH, PANEL_BG);
+            leiste.setTranslateY(GameConfig.KARTE_HOEHE);
+            Line leisteRand = new Line(0, GameConfig.KARTE_HOEHE, GameConfig.KARTE_BREITE, GameConfig.KARTE_HOEHE);
+            leisteRand.setStroke(Color.web("#333355")); leisteRand.setStrokeWidth(2);
+            wellenInfo = mkText("", 16, mitteY - (leisteH >= 60 ? 8 : -5), Color.WHITE, 14, true);
+            Text tasten = mkText("LEERTASTE Start  ·  F Tempo  ·  1/2/3 Upgrade  ·  Entf Verkaufen  ·  M Musik  ·  ESC Menü",
+                    16, leisteH >= 60 ? mitteY + 18 : mitteY + 5, Color.web("#8888bb"), 12, false);
+            if (leisteH < 60) {
+                // wenig Platz: Tasten rechts in derselben Zeile
+                tasten.setText("LEER Start · F Tempo · 1/2/3 Upgrade · Entf Verkaufen · M Musik");
+                tasten.setTranslateX(GameConfig.KARTE_BREITE - 16 - tasten.getLayoutBounds().getWidth());
+            }
+            FXGL.getGameScene().addUINodes(leiste, leisteRand, wellenInfo, tasten);
+            settingsHint.setText("ESC = Menü");
+            settingsHint.setTranslateX(PX + 228 - settingsHint.getLayoutBounds().getWidth());
+        }
+        aktualisiereWellenInfo();
 
 
 
@@ -467,7 +504,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         Sounds.play("gewonnen");
         int maxRunden = roundManager.getMaxRunden();
 
-        Rectangle overlay = new Rectangle(1200, 640, Color.color(0.0, 0.05, 0.0, 0.88));
+        Rectangle overlay = new Rectangle(GameConfig.breite, GameConfig.hoehe, Color.color(0.0, 0.05, 0.0, 0.88));
 
         Text titelText = new Text("GEWONNEN!");
         titelText.setFont(Font.font("Arial", FontWeight.BOLD, 46));
@@ -526,7 +563,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         StackPane panelStack = new StackPane(panel, content);
         panelStack.setAlignment(Pos.CENTER);
-        panelStack.setTranslateX(360); panelStack.setTranslateY(110);
+        panelStack.setTranslateX((GameConfig.breite - 480) / 2.0); panelStack.setTranslateY((GameConfig.hoehe - 420) / 2.0);
 
         FXGL.getGameScene().addUINodes(overlay, panelStack);
     }
@@ -788,8 +825,47 @@ public class TeacherTowerDefenseApp extends GameApplication {
         int nummer = roundManager.getAktuelleRundeAnzeige();
         aktualisiereStartButton(false);
         roundManager.starteNaechsteRunde();
+        aktualisiereWellenInfo();
         Sounds.play("rundenstart");
         zeigeRundenBanner("Runde " + nummer + " / " + roundManager.getMaxRunden(), beschreibung);
+    }
+
+    /** Schriftzug auf dem Dach des HTL-Hauptgebäudes (Campus-Map, Dach: x 304–736, y 16–96). */
+    private void zeigeHtlSchriftzug() {
+        Text titel = new Text("HTL SAALFELDEN");
+        titel.setFont(Font.font("Arial", FontWeight.BLACK, 30));
+        titel.setFill(Color.WHITE);
+        titel.setStroke(Color.web("#2c3e50"));
+        titel.setStrokeWidth(2);
+
+        Text untertitel = new Text("Höhere Technische Lehranstalt");
+        untertitel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        untertitel.setFill(Color.web("#ecf0f1"));
+        untertitel.setStroke(Color.web("#2c3e50"));
+        untertitel.setStrokeWidth(0.6);
+
+        VBox schild = new VBox(2, titel, untertitel);
+        schild.setAlignment(Pos.CENTER);
+        schild.setPrefWidth(432);
+        schild.setMouseTransparent(true);
+
+        FXGL.entityBuilder()
+                .at(304, 30)
+                .view(schild)
+                .zIndex(60)
+                .buildAndAttach();
+    }
+
+    /** Zeigt in der Infoleiste, welche Schüler als Nächstes kommen. */
+    private void aktualisiereWellenInfo() {
+        if (wellenInfo == null || roundManager == null) return;
+        if (spielVorbei || roundManager.isSpielEnde()) { wellenInfo.setText(""); return; }
+        String beschreibung = roundManager.getNaechsteRundeBeschreibung();
+        int nr = roundManager.getAktuelleRundeAnzeige();
+        wellenInfo.setText(roundManager.isRundeAktiv()
+                ? "▶  Runde " + nr + " läuft:   " + beschreibung
+                : "Nächste Runde " + nr + ":   " + beschreibung);
+        wellenInfo.setFill(roundManager.isRundeAktiv() ? Color.web("#f39c12") : Color.WHITE);
     }
 
     /** Großer Text oben in der Kartenmitte, der nach kurzer Zeit ausblendet. */
@@ -835,6 +911,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
     /** Stoppt Wellen, entfernt alle Schüler/Projektile und sperrt die Eingabe. */
     private void beendeSpiel() {
         spielVorbei = true;
+        if (wellenInfo != null) wellenInfo.setText("");
         roundManager.stoppen();
         deselect();
         if (lehrerSchatten != null) { lehrerSchatten.removeFromWorld(); lehrerSchatten = null; }
@@ -911,6 +988,12 @@ public class TeacherTowerDefenseApp extends GameApplication {
         return t;
     }
 
+    /** Setzt einen Skin-Button-Text mittig in seinen Button (72x30 an x/y). */
+    private void zentriereSkinText(Text t, double x, double y) {
+        t.setTranslateX(x + 36 - t.getLayoutBounds().getWidth() / 2);
+        t.setTranslateY(y + 15);
+    }
+
     private Line mkLine(double x1, double y1, double x2, double y2) {
         Line l = new Line(x1,y1,x2,y2); l.setStroke(Color.web("#333355")); l.setStrokeWidth(1);
         return l;
@@ -920,7 +1003,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         if (lehrerSchatten == null) return;
         double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
         lehrerSchatten.setPosition(mx - 24, my - 24);
-        boolean koll = kollidiert(mx, my) || mx >= 960;
+        boolean koll = kollidiert(mx, my) || !GameConfig.aufKarte(mx, my);
         Circle rc    = (Circle)    lehrerSchatten.getViewComponent().getChildren().get(0);
         Rectangle bd = (Rectangle) lehrerSchatten.getViewComponent().getChildren().get(1);
         if (koll) { bd.setFill(Color.color(1,0,0,0.5)); rc.setFill(Color.color(1,0,0,0.2)); rc.setStroke(Color.RED); }
@@ -978,14 +1061,14 @@ public class TeacherTowerDefenseApp extends GameApplication {
         icon.setOnMouseReleased(e -> {
             if (lehrerSchatten != null) {
                 double mx = FXGL.getInput().getMouseXWorld(), my = FXGL.getInput().getMouseYWorld();
-                if (!kollidiert(mx, my) && mx < 960 && FXGL.geti("geld") >= kosten
+                if (!kollidiert(mx, my) && GameConfig.aufKarte(mx, my) && FXGL.geti("geld") >= kosten
                         && (!zaehltZumLimit || anzahlLehrer() < GameConfig.MAX_LEHRER)) {
                     Entity l = FXGL.spawn(spawnName, mx - 24, my - 24);
                     l.getComponent(LehrerComponent.class).setBaseKosten(kosten);
                     FXGL.inc("geld", -kosten);
                     Sounds.play("platzieren");
                     aktualisiereShopLeistbarkeit();
-                } else if (mx < 960) {
+                } else if (GameConfig.aufKarte(mx, my)) {
                     Sounds.play("fehler");
                 }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
@@ -1072,7 +1155,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         int erreichtRunde = roundManager.getAktuelleRundeAnzeige();
         int maxRunden     = roundManager.getMaxRunden();
 
-        Rectangle overlay = new Rectangle(1200, 640, Color.color(0.0, 0.0, 0.05, 0.88));
+        Rectangle overlay = new Rectangle(GameConfig.breite, GameConfig.hoehe, Color.color(0.0, 0.0, 0.05, 0.88));
 
         Text titelText = new Text("GAME OVER");
         titelText.setFont(Font.font("Arial", FontWeight.BOLD, 46));
@@ -1136,8 +1219,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         StackPane panelStack = new StackPane(panel, content);
         panelStack.setAlignment(Pos.CENTER);
-        panelStack.setTranslateX(360);
-        panelStack.setTranslateY(110);
+        panelStack.setTranslateX((GameConfig.breite - 480) / 2.0);
+        panelStack.setTranslateY((GameConfig.hoehe - 420) / 2.0);
 
         FXGL.getGameScene().addUINodes(overlay, panelStack);
     }

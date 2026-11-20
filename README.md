@@ -17,12 +17,17 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
     - Stufe 5 („Spezial“) verdoppelt den Schaden
 - **Lehrer-Limit:** maximal 8 Lehrer gleichzeitig – lieber upgraden statt spammen (Gassner zählt nicht dazu)
 - **10 Runden** mit 7 verschiedenen Schülertypen (von Erstklässler bis Schulleiter)
-- **3 Karten** (HTL Saalfelden, City, Schulausflug) mit eigenen Wegstrecken
+- **4 Karten** mit eigenen Wegstrecken
+    - **HTL Saalfelden** – Campus mit Hauptgebäude, Werkstätten, Turnhalle, Parkplatz und Bushaltestelle; die Schüler kommen aus dem Haupteingang (erzeugt von `tools/gen_campus.py`)
+    - **City** – Straßen um den Brunnen, Weg führt über die Parkplatz-Einbahnrunde
+    - **Schulausflug** – Waldlager mit Teichen
     - Schulausflug wird freigeschaltet, sobald City auf Easy geschafft ist
     - Map3.tmx wird von `tools/gen_map3.py` erzeugt (Vorschau: `java tools/TmxTool.java render ...`)
+    - **Teichwiese** – die ursprüngliche erste Karte
 - **Meta-Progression**: Diamanten 💎 (Skin-Währung) & XP bleiben zwischen Spielsessions erhalten – im Spiel bezahlt man Lehrer und Upgrades mit 💰 €
 - **Lehrer-Skins** kaufbar im Hauptmenü
 - **3 Schwierigkeitsgrade** (Easy / Medium / Hard) mit unterschiedlichem Startgeld und Schüler-HP
+- **Passt sich dem Monitor an:** keine schwarzen Ränder – auf 16:9/16:10 gibt es unten eine Infoleiste mit der nächsten Welle
 - **Spielgeschwindigkeit** umschaltbar (1x / 2x)
 - **Sound & Musik** im Retro-Stil (Effekte für Würfe, Treffer, Upgrades, Schulglocke zum Rundenstart; Musik im Menü und im Spiel)
     - im Pause-Menü einzeln abschaltbar, Musik auch mit Taste **M**
@@ -56,6 +61,11 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
 | TYP8 | Schulleiter | 12 | langsam | spawnt 2x TYP7 beim Tod, -5 Leben |
 
 
+## Grafiken
+
+Alle Karten-Grafiken stammen von **Kenney** (www.kenney.nl) und stehen unter **CC0** (frei nutzbar, auch kommerziell):
+Roguelike RPG Pack, Roguelike Modern City, RPG Urban Pack (`assets/levels/rpg_urban_LICENSE.txt`).
+
 ## Technologien
 
 - **Java 25**
@@ -72,3 +82,18 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
 
 # Nur kompilieren
 ./mvnw clean compile
+
+# Tests ausführen
+./mvnw test
+
+# Fertiges Spiel bauen → target/TeacherTowerDefense.jar (alle Bibliotheken enthalten, ~24 MB)
+./mvnw clean package
+```
+
+Benötigt **Java 21 oder neuer** (z.B. [Adoptium Temurin](https://adoptium.net)).
+
+### Fertiges Spiel starten
+
+Neben die `TeacherTowerDefense.jar` gehört die Datei `Teacher Tower Defense starten.bat`
+(liegt in `tools/`). Ein Doppelklick darauf sucht automatisch ein passendes Java 21+ und startet das Spiel –
+ein direkter Doppelklick auf die `.jar` verwendet unter Windows oft ein altes Java 8 und funktioniert dann nicht.

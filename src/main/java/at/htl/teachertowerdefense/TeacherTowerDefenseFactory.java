@@ -408,6 +408,11 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
     @Spawns("Gemuese")        public Entity newGemuese(SpawnData d)        { return baueHindernisOhneSchuss(d); }
     @Spawns("Mistkübel")      public Entity newMistkuebel(SpawnData d)     { return baueHindernis(d); }
 
+    // ── Campus.tmx (HTL Saalfelden) ──────────────────────────────
+    @Spawns("Auto")            public Entity newAuto(SpawnData d)            { return baueHindernis(d); }
+    @Spawns("Fahrradstaender") public Entity newFahrradstaender(SpawnData d) { return baueHindernisOhneSchuss(d); }
+    @Spawns("Zaun")            public Entity newZaun(SpawnData d)            { return baueHindernisOhneSchuss(d); } // Maschendraht: man schießt durch
+
     // PFadAussen (City.tmx schreibt es mit großem F)
     @Spawns("PFadAussen")
     public Entity newPFadAussen(SpawnData data) {

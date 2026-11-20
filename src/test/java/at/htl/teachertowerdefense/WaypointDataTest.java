@@ -24,7 +24,7 @@ class WaypointDataTest {
     }
 
     @ParameterizedTest(name = "Map {0}")
-    @ValueSource(ints = {0, 1, 2})
+    @ValueSource(ints = {0, 1, 2, 3})
     void jederPunktGehoertZuSeinemAbschnitt(int map) {
         GameConfig.selectedMap = map;
         List<Point2D> route = WaypointData.getROUTE();
@@ -42,7 +42,7 @@ class WaypointDataTest {
     }
 
     @ParameterizedTest(name = "Map {0}")
-    @ValueSource(ints = {0, 1, 2})
+    @ValueSource(ints = {0, 1, 2, 3})
     void kindLaeuftZurNaechstenEckeUndUeberspringtSieNicht(int map) {
         GameConfig.selectedMap = map;
         List<Point2D> route = WaypointData.getROUTE();
@@ -58,7 +58,7 @@ class WaypointDataTest {
     }
 
     @ParameterizedTest(name = "Map {0}")
-    @ValueSource(ints = {0, 1, 2})
+    @ValueSource(ints = {0, 1, 2, 3})
     void fortschrittWaechstEntlangDerRoute(int map) {
         GameConfig.selectedMap = map;
         List<Point2D> route = WaypointData.getROUTE();
@@ -70,6 +70,37 @@ class WaypointDataTest {
                 assertTrue(f > vorher, "Map " + map + ": Fortschritt muss wachsen (Abschnitt " + i + ")");
                 vorher = f;
             }
+        }
+    }
+
+    /**
+     * Die generierten Maps (Campus = 0, Schulausflug = 2) enthalten den Weg als "Pfad"-Linie.
+     * Die Route im Code muss genau darauf liegen – sonst laufen die Schüler neben dem Weg.
+     */
+    @ParameterizedTest(name = "Map {0}")
+    @ValueSource(ints = {0, 2})
+    void routeLiegtAufDemWegDerMapDatei(int map) throws Exception {
+        GameConfig.selectedMap = map;
+        String datei = "/assets/levels/" + GameConfig.getMapDatei();
+        String xml;
+        try (var in = WaypointDataTest.class.getResourceAsStream(datei)) {
+            assertNotNull(in, datei + " fehlt");
+            xml = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        var m = java.util.regex.Pattern.compile(
+                "type=\"Pfad\" x=\"([-\\d.]+)\" y=\"([-\\d.]+)\">\\s*<polyline points=\"([^\"]+)\"").matcher(xml);
+        assertTrue(m.find(), "Pfad-Linie nicht gefunden");
+        double x0 = Double.parseDouble(m.group(1)), y0 = Double.parseDouble(m.group(2));
+        String[] punkte = m.group(3).split(" ");
+
+        List<Point2D> route = WaypointData.getROUTE();
+        assertEquals(punkte.length, route.size(), "Anzahl Wegpunkte");
+        for (int i = 0; i < punkte.length; i++) {
+            String[] xy = punkte[i].split(",");
+            Point2D mitte = new Point2D(x0 + Double.parseDouble(xy[0]), y0 + Double.parseDouble(xy[1]));
+            Point2D erwartet = mitte.subtract(14, 16);   // Entity-Position = Mitte minus halbe Hitbox
+            assertEquals(erwartet.getX(), route.get(i).getX(), 0.01, "Wegpunkt " + i + " x");
+            assertEquals(erwartet.getY(), route.get(i).getY(), 0.01, "Wegpunkt " + i + " y");
         }
     }
 
