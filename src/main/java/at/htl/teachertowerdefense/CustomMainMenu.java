@@ -34,6 +34,13 @@ public class CustomMainMenu extends FXGLMenu {
     private VBox[] mapKarten = new VBox[GameConfig.ANZAHL_MAPS];
     private Rectangle[] mapBorders = new Rectangle[GameConfig.ANZAHL_MAPS];
     private Text[] sterneTexte = new Text[GameConfig.ANZAHL_MAPS];
+    private Text[] mapNamenTexte = new Text[GameConfig.ANZAHL_MAPS];
+    private Text[] lockTexte = new Text[GameConfig.ANZAHL_MAPS];
+
+    // Einstellungen
+    private Pane einstellungen;
+    private Rectangle sSound, sMusik, sVollbild, sAlleFrei;
+    private Text tSound, tMusik, tVollbild, tAlleFrei;
 
     // Diff-Buttons
     private Rectangle[] diffBtns = new Rectangle[3];
@@ -173,7 +180,7 @@ public class CustomMainMenu extends FXGLMenu {
 
         for (int i = 0; i < anzahl; i++) {
             final int idx = i;
-            boolean frei = SaveData.mapFreigeschaltet[i];
+            boolean frei = SaveData.mapFrei(i);
             int sterne = SaveData.getSterne(i);
 
             // Rahmen
@@ -195,8 +202,11 @@ public class CustomMainMenu extends FXGLMenu {
             sterneTexte[i] = sterneText; // Referenz speichern für späteren Refresh
 
             // Gesperrt-Overlay
-            Text lockText = (frei || i == 0) ? new Text("")
-                    : mkText("🔒 " + MAP_NAMEN[i - 1] + " auf Easy schaffen", 0, 0, Color.web("#888888"), 11, false);
+            Text lockText = mkText(i == 0 ? "" : "🔒 " + MAP_NAMEN[i - 1] + " auf Easy schaffen",
+                    0, 0, Color.web("#888888"), 11, false);
+            lockText.setVisible(!frei);
+            mapNamenTexte[i] = name;
+            lockTexte[i] = lockText;
 
             VBox karte = new VBox(8, name, sterneText, lockText);
             karte.setAlignment(Pos.CENTER);
@@ -204,13 +214,11 @@ public class CustomMainMenu extends FXGLMenu {
             karte.setTranslateX(startX + i * (karteW + 20));
             karte.setTranslateY(H - 284);
 
-            // Klick
-            if (frei) {
-                border.setOnMouseClicked(e -> waehleMap(idx));
-                karte.setOnMouseClicked(e -> waehleMap(idx));
-                border.setOnMouseEntered(e -> { if (idx != selectedMap) border.setFill(Color.color(0.2,0.2,0.35,0.9)); });
-                border.setOnMouseExited(e  -> { if (idx != selectedMap) border.setFill(Color.color(0.15,0.15,0.25,0.9)); });
-            }
+            // Klick – die Sperre wird jedes Mal neu geprüft (kann sich über die Einstellungen ändern)
+            border.setOnMouseClicked(e -> { if (SaveData.mapFrei(idx)) waehleMap(idx); });
+            karte.setOnMouseClicked(e -> { if (SaveData.mapFrei(idx)) waehleMap(idx); });
+            border.setOnMouseEntered(e -> { if (idx != selectedMap && SaveData.mapFrei(idx)) border.setFill(Color.color(0.2,0.2,0.35,0.9)); });
+            border.setOnMouseExited(e  -> { if (idx != selectedMap && SaveData.mapFrei(idx)) border.setFill(Color.color(0.15,0.15,0.25,0.9)); });
 
             // Border hinter VBox legen
             border.setTranslateX(startX + i * (karteW + 20));
@@ -284,6 +292,132 @@ public class CustomMainMenu extends FXGLMenu {
         exitBtn.setOnMouseExited(e  -> exitBtn.setFill(Color.color(0.4,0.05,0.05,0.85)));
 
         getContentRoot().getChildren().addAll(startBtn, startText, exitBtn, exitText);
+
+        // ── EINSTELLUNGEN ────────────────────────────────────────
+        Rectangle einstBtn = new Rectangle(140, 36, Color.color(0.12, 0.14, 0.25, 0.9));
+        einstBtn.setArcWidth(8); einstBtn.setArcHeight(8);
+        einstBtn.setTranslateX(W - 270); einstBtn.setTranslateY(20);
+        einstBtn.setStroke(Color.web("#5d6d9e")); einstBtn.setStrokeWidth(1);
+        Text einstText = mkText("⚙  Einstellungen", W - 258, 43, Color.web("#d6dcf5"), 12, true);
+        einstBtn.setCursor(javafx.scene.Cursor.HAND);
+        einstText.setCursor(javafx.scene.Cursor.HAND);
+        einstBtn.setOnMouseClicked(e -> zeigeEinstellungen(true));
+        einstText.setOnMouseClicked(e -> zeigeEinstellungen(true));
+        einstBtn.setOnMouseEntered(e -> einstBtn.setFill(Color.color(0.18, 0.21, 0.36, 0.95)));
+        einstBtn.setOnMouseExited(e  -> einstBtn.setFill(Color.color(0.12, 0.14, 0.25, 0.9)));
+        getContentRoot().getChildren().addAll(einstBtn, einstText);
+
+        einstellungen = baueEinstellungen(W, H);
+        einstellungen.setVisible(false);
+        getContentRoot().getChildren().add(einstellungen);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // EINSTELLUNGEN
+    // ──────────────────────────────────────────────────────────────
+
+    private Pane baueEinstellungen(int W, int H) {
+        Pane root = new Pane();
+        Rectangle dimmer = new Rectangle(W, H, Color.color(0, 0, 0, 0.65));
+        dimmer.setOnMouseClicked(e -> zeigeEinstellungen(false));   // Klick daneben schließt
+
+        double pw = 460, ph = 360;
+        double px = (W - pw) / 2, py = (H - ph) / 2;
+        Rectangle panel = new Rectangle(pw, ph, Color.color(0.07, 0.07, 0.12, 0.98));
+        panel.setArcWidth(16); panel.setArcHeight(16);
+        panel.setStroke(Color.web("#5d6d9e")); panel.setStrokeWidth(2);
+        panel.setTranslateX(px); panel.setTranslateY(py);
+        panel.setOnMouseClicked(e -> e.consume());
+
+        Text titel = mkText("⚙  EINSTELLUNGEN", px + 28, py + 42, Color.WHITE, 22, true);
+
+        sSound = new Rectangle(); tSound = new Text();
+        sMusik = new Rectangle(); tMusik = new Text();
+        sVollbild = new Rectangle(); tVollbild = new Text();
+        sAlleFrei = new Rectangle(); tAlleFrei = new Text();
+
+        root.getChildren().addAll(dimmer, panel, titel);
+        schalter(root, px, py + 80,  "🔊  Soundeffekte", null, sSound, tSound,
+                () -> Sounds.setSoundAn(!SaveData.soundAn));
+        schalter(root, px, py + 130, "🎵  Musik", null, sMusik, tMusik,
+                () -> Sounds.setMusikAn(!SaveData.musikAn));
+        schalter(root, px, py + 180, "🖥  Vollbild", null, sVollbild, tVollbild,
+                () -> FXGL.getPrimaryStage().setFullScreen(!FXGL.getPrimaryStage().isFullScreen()));
+        schalter(root, px, py + 230, "🔓  Alle Karten freischalten",
+                "Präsentationsmodus: alle Karten & Schwierigkeiten spielbar", sAlleFrei, tAlleFrei,
+                () -> {
+                    SaveData.alleMapsFrei = !SaveData.alleMapsFrei;
+                    SaveData.speichern();
+                    aktualisiereKarten();
+                });
+
+        Rectangle zu = new Rectangle(160, 40, Color.web("#27ae60"));
+        zu.setArcWidth(10); zu.setArcHeight(10);
+        zu.setTranslateX(px + (pw - 160) / 2); zu.setTranslateY(py + ph - 62);
+        Text zuText = mkText("Fertig", 0, 0, Color.WHITE, 15, true);
+        zuText.setTextOrigin(javafx.geometry.VPos.CENTER);
+        zuText.setTranslateX(px + pw / 2 - zuText.getLayoutBounds().getWidth() / 2);
+        zuText.setTranslateY(py + ph - 42);
+        zu.setCursor(javafx.scene.Cursor.HAND); zuText.setCursor(javafx.scene.Cursor.HAND);
+        zu.setOnMouseClicked(e -> zeigeEinstellungen(false));
+        zuText.setOnMouseClicked(e -> zeigeEinstellungen(false));
+        zu.setOnMouseEntered(e -> zu.setFill(Color.web("#2ecc71")));
+        zu.setOnMouseExited(e  -> zu.setFill(Color.web("#27ae60")));
+        root.getChildren().addAll(zu, zuText);
+        return root;
+    }
+
+    /** Eine Zeile mit Beschriftung (optional Untertitel) und AN/AUS-Schalter rechts. */
+    private void schalter(Pane root, double px, double y, String label, String hinweis,
+                          Rectangle btn, Text text, Runnable aktion) {
+        Text l = mkText(label, px + 32, y + (hinweis == null ? 18 : 12), Color.web("#e0e4f5"), 15, true);
+        root.getChildren().add(l);
+        if (hinweis != null) {
+            root.getChildren().add(mkText(hinweis, px + 32, y + 30, Color.web("#8a90b0"), 11, false));
+        }
+        btn.setWidth(64); btn.setHeight(28);
+        btn.setArcWidth(28); btn.setArcHeight(28);
+        btn.setTranslateX(px + 460 - 32 - 64); btn.setTranslateY(y);
+        text.setStyle("-fx-font-size: 12px; -fx-font-weight: bold;");
+        text.setTextOrigin(javafx.geometry.VPos.CENTER);
+        text.setTranslateY(y + 14);
+        btn.setCursor(javafx.scene.Cursor.HAND); text.setCursor(javafx.scene.Cursor.HAND);
+        Runnable klick = () -> { aktion.run(); Sounds.play("klick"); aktualisiereSchalter(); };
+        btn.setOnMouseClicked(e -> klick.run());
+        text.setOnMouseClicked(e -> klick.run());
+        root.getChildren().addAll(btn, text);
+    }
+
+    private void zeigeEinstellungen(boolean an) {
+        if (an) aktualisiereSchalter();
+        einstellungen.setVisible(an);
+        Sounds.play("klick");
+    }
+
+    private void aktualisiereSchalter() {
+        setzeSchalter(sSound, tSound, SaveData.soundAn);
+        setzeSchalter(sMusik, tMusik, SaveData.musikAn);
+        setzeSchalter(sVollbild, tVollbild, FXGL.getPrimaryStage().isFullScreen());
+        setzeSchalter(sAlleFrei, tAlleFrei, SaveData.alleMapsFrei);
+    }
+
+    private void setzeSchalter(Rectangle btn, Text text, boolean an) {
+        btn.setFill(an ? Color.web("#27ae60") : Color.web("#555566"));
+        text.setText(an ? "AN" : "AUS");
+        text.setFill(an ? Color.WHITE : Color.LIGHTGRAY);
+        text.setTranslateX(btn.getTranslateX() + 32 - text.getLayoutBounds().getWidth() / 2);
+    }
+
+    /** Sperr-Anzeige der Karten neu setzen (z.B. nach Präsentationsmodus an/aus). */
+    private void aktualisiereKarten() {
+        for (int i = 0; i < GameConfig.ANZAHL_MAPS; i++) {
+            if (mapNamenTexte[i] == null) continue;
+            boolean frei = SaveData.mapFrei(i);
+            mapNamenTexte[i].setFill(frei ? Color.WHITE : Color.GRAY);
+            lockTexte[i].setVisible(!frei);
+        }
+        if (!SaveData.mapFrei(selectedMap)) selectedMap = 0;
+        waehleMap(selectedMap);
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -303,6 +437,7 @@ public class CustomMainMenu extends FXGLMenu {
             for (int j = 0; j < 3; j++) sb.append(j < s ? "★" : "☆");
             sterneTexte[i].setText(sb.toString());
         }
+        aktualisiereKarten();
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -317,7 +452,7 @@ public class CustomMainMenu extends FXGLMenu {
             mapBorders[i].setStrokeWidth(sel ? 2.5 : 1.5);
             mapBorders[i].setFill(sel
                     ? Color.color(0.2, 0.18, 0.05, 0.95)
-                    : Color.color(0.15, 0.15, 0.25, 0.9));
+                    : SaveData.mapFrei(i) ? Color.color(0.15, 0.15, 0.25, 0.9) : Color.color(0.1, 0.1, 0.1, 0.85));
         }
         // Schwierigkeit validieren (Hard/Medium evtl. gesperrt)
         waehleDiff(Math.min(selectedDiff, hoechsteFreieDiff()));

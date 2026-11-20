@@ -22,6 +22,9 @@ public class SaveData {
     public static boolean soundAn = true;
     public static boolean musikAn = true;
 
+    /** Präsentationsmodus: alle Karten und Schwierigkeiten sind spielbar (Einstellungen im Hauptmenü). */
+    public static boolean alleMapsFrei = false;
+
     // -------------------------------------------------------
     // Laden / Speichern
     // -------------------------------------------------------
@@ -49,6 +52,7 @@ public class SaveData {
 
         soundAn = PREFS.getBoolean("sound_an", true);
         musikAn = PREFS.getBoolean("musik_an", true);
+        alleMapsFrei = PREFS.getBoolean("alle_maps_frei", false);
 
         // Skins laden
         for (int i = 0; i < 3; i++) {
@@ -74,6 +78,7 @@ public class SaveData {
 
         PREFS.putBoolean("sound_an", soundAn);
         PREFS.putBoolean("musik_an", musikAn);
+        PREFS.putBoolean("alle_maps_frei", alleMapsFrei);
 
         // Skins speichern
         for (int i = 0; i < 3; i++) {
@@ -135,7 +140,13 @@ public class SaveData {
         speichern();
     }
 
+    /** Ist die Karte spielbar (freigespielt oder Präsentationsmodus)? */
+    public static boolean mapFrei(int mapIndex) {
+        return alleMapsFrei || mapFreigeschaltet[mapIndex];
+    }
+
     public static boolean istFreigeschaltet(int mapIndex, int schwierigkeit) {
+        if (alleMapsFrei) return true;
         if (!mapFreigeschaltet[mapIndex]) return false;
         if (schwierigkeit == 0) return true;
         return abgeschlossen[mapIndex][schwierigkeit - 1];
@@ -158,5 +169,6 @@ public class SaveData {
         skinFreigeschaltet = new boolean[3][2];
         soundAn = true;
         musikAn = true;
+        alleMapsFrei = false;
     }
 }
