@@ -28,8 +28,9 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
 | Lehrer platzieren | Lehrer im Shop anklicken → auf Karte klicken |
 | Lehrer verkaufen | Platzierten Lehrer anklicken → Verkaufen-Button |
 | Lehrer upgraden | Platzierten Lehrer anklicken → Upgrade-Panel |
-| Runde starten | Start-Button (oder Auto-Start aktivieren) |
-| Spielgeschwindigkeit | 1x / 2x Button im Spiel-Menü |
+| Lehrer abwählen | Rechtsklick |
+| Runde starten | Start-Button oder **Leertaste** (oder Auto-Start aktivieren) |
+| Spielgeschwindigkeit | 1x / 2x Button oder **F** |
 | Menü öffnen | ESC |
 
 ## Schülertypen

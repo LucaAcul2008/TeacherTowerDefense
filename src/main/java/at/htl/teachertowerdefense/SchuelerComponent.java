@@ -10,6 +10,10 @@ public class SchuelerComponent extends Component {
     private int hp;
     private boolean sterbend = false;
 
+    // HP-Balken (nur für Schüler mit mehr als 1 HP, erscheint sobald sie Schaden nehmen)
+    private javafx.scene.shape.Rectangle hpBalkenBg;
+    private javafx.scene.shape.Rectangle hpBalken;
+
     public SchuelerComponent(SchuelerTyp typ) {
         this(typ, 0);
     }
@@ -20,9 +24,50 @@ public class SchuelerComponent extends Component {
         this.hp           = (int)(typ.maxHp * GameConfig.getSchuelerHpMulti());
     }
 
+    @Override
+    public void onAdded() {
+        if (getMaxHp() <= 1) return;
+        int breite = TeacherTowerDefenseFactory.hitboxGroesse(typ);
+        double y   = -(TeacherTowerDefenseFactory.spriteHoehe(typ) - breite) - 7;
+
+        // Über dem Sprite zentrieren (das Sprite ist breiter als die Hitbox)
+        double spriteBreite = entity.getViewComponent().getChildren().stream()
+                .filter(n -> n instanceof javafx.scene.image.ImageView)
+                .mapToDouble(n -> n.getBoundsInLocal().getWidth())
+                .findFirst().orElse(breite);
+        double x = (spriteBreite - breite) / 2.0;
+
+        hpBalkenBg = new javafx.scene.shape.Rectangle(breite, 5, javafx.scene.paint.Color.color(0, 0, 0, 0.7));
+        hpBalkenBg.setTranslateX(x);
+        hpBalkenBg.setTranslateY(y);
+        hpBalkenBg.setArcWidth(3); hpBalkenBg.setArcHeight(3);
+        hpBalken = new javafx.scene.shape.Rectangle(breite, 5, javafx.scene.paint.Color.LIMEGREEN);
+        hpBalken.setTranslateX(x);
+        hpBalken.setTranslateY(y);
+        hpBalken.setArcWidth(3); hpBalken.setArcHeight(3);
+
+        hpBalkenBg.setVisible(false);
+        hpBalken.setVisible(false);
+        entity.getViewComponent().addChild(hpBalkenBg);
+        entity.getViewComponent().addChild(hpBalken);
+    }
+
+    private void aktualisiereHpBalken() {
+        if (hpBalken == null) return;
+        double anteil = Math.max(0, (double) hp / getMaxHp());
+        hpBalken.setWidth(hpBalkenBg.getWidth() * anteil);
+        hpBalken.setFill(anteil > 0.5 ? javafx.scene.paint.Color.LIMEGREEN
+                : anteil > 0.25 ? javafx.scene.paint.Color.ORANGE
+                : javafx.scene.paint.Color.RED);
+        boolean sichtbar = hp < getMaxHp();
+        hpBalkenBg.setVisible(sichtbar);
+        hpBalken.setVisible(sichtbar);
+    }
+
     public void damage(int amount) {
         if (sterbend) return;
         hp -= amount;
+        aktualisiereHpBalken();
         if (hp <= 0) {
             sterbend = true;
             // Schüler sofort verstecken damit er nicht noch einen Frame nach vorne springt
@@ -68,7 +113,7 @@ public class SchuelerComponent extends Component {
                 }
             }
         }
-        SaveData.speichern();
+        // Gespeichert wird am Rundenende / Spielende – nicht bei jedem Kill (zu teuer)
 
         final double x           = entity.getX() + typ.groesse / 2.0;
         final double y           = entity.getY() + typ.groesse / 2.0;
@@ -98,6 +143,7 @@ public class SchuelerComponent extends Component {
     }
 
     public SchuelerTyp getTyp()  { return typ; }
+    public int getStartWaypoint() { return startWaypoint; }
     public int getHp()           { return hp; }
     public int getMaxHp()        { return (int)(typ.maxHp * GameConfig.getSchuelerHpMulti()); }
 }

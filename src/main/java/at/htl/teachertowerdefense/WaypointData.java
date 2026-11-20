@@ -78,6 +78,28 @@ public class WaypointData {
         return Math.min(index + 1, route.size() - 1);
     }
 
+    /**
+     * Wie weit ein Schüler (Entity-Position) schon entlang der Route gelaufen ist, in Pixeln.
+     * Wird zum Zielen verwendet: der Schüler mit dem größten Fortschritt ist "der Erste".
+     * Luftlinie zum Ausgang ist bei kurvigen Wegen (City-Map) falsch.
+     */
+    public static double fortschritt(Point2D pos, int abWaypoint) {
+        List<Point2D> route = getROUTE();
+        double kumuliert = 0, bester = 0, besteDist = Double.MAX_VALUE;
+        for (int i = 0; i < route.size() - 1; i++) {
+            Point2D a = route.get(i), b = route.get(i + 1);
+            Point2D ab = b.subtract(a);
+            double len = ab.magnitude();
+            if (i >= abWaypoint - 1 && len > 0) {
+                double t = Math.max(0, Math.min(1, pos.subtract(a).dotProduct(ab) / (len * len)));
+                double d = a.add(ab.multiply(t)).distance(pos);
+                if (d < besteDist) { besteDist = d; bester = kumuliert + t * len; }
+            }
+            kumuliert += len;
+        }
+        return bester;
+    }
+
     public static List<Point2D> routeAbIndex(int startIndex) {
         List<Point2D> route = getROUTE();
         return new ArrayList<>(route.subList(startIndex, route.size()));

@@ -63,9 +63,13 @@ public class TowerComponent extends Component {
 
         if (inRange.isEmpty()) return;
 
-        // Ziel: Schüler der dem Ausgang am nächsten ist
-        Point2D ausgang = WaypointData.getROUTE().get(WaypointData.getROUTE().size() - 1);
-        inRange.sort(Comparator.comparingDouble(e -> e.getCenter().distance(ausgang)));
+        // Ziel: Schüler der auf dem Weg am weitesten ist ("First"-Targeting)
+        java.util.Map<Entity, Double> fortschritt = new java.util.HashMap<>();
+        for (Entity e : inRange) {
+            SchuelerComponent sc = e.getComponent(SchuelerComponent.class);
+            fortschritt.put(e, WaypointData.fortschritt(e.getPosition(), sc.getStartWaypoint()));
+        }
+        inRange.sort(Comparator.comparingDouble((Entity e) -> fortschritt.get(e)).reversed());
 
         String projektilTyp = lc != null ? lc.getProjektilTyp() : "ProjektilFloppy";
         if (projektilTyp.isEmpty()) return;

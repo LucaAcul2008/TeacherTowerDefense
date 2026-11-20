@@ -34,11 +34,7 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
         List<Point2D> route = WaypointData.routeAbIndex(startIndex);
 
-        int hitbox = switch (typ) {
-            case TYP5, TYP6 -> HITBOX_MITTEL;
-            case TYP7, TYP8 -> HITBOX_GROSS;
-            default         -> HITBOX_KLEIN;
-        };
+        int hitbox = hitboxGroesse(typ);
 
         Entity schueler = FXGL.entityBuilder(data)
                 .type(EntityType.SCHUELER)
@@ -117,7 +113,8 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
 
     @Spawns("LehrerSchatten")
     public Entity newLehrerSchatten(SpawnData data) {
-        Circle rangeCircle = new Circle(150, Color.color(1, 1, 1, 0.2));
+        double range = data.hasKey("range") ? ((Number) data.get("range")).doubleValue() : 150;
+        Circle rangeCircle = new Circle(range, Color.color(1, 1, 1, 0.2));
         rangeCircle.setStroke(Color.WHITE);
         rangeCircle.setCenterX(24);
         rangeCircle.setCenterY(24);
@@ -142,21 +139,13 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
             case TYP4 -> "Maxi.png";
             case TYP5 -> "Toni.png";
             case TYP6 -> "Marko.png";
-            case TYP7 -> "clemens.png";
-            case TYP8 -> "johannes.png";
+            case TYP7 -> "Clemens.png";   // Groß-/Kleinschreibung muss stimmen (sonst kaputt im JAR)
+            case TYP8 -> "Johannes.png";
             default   -> null;
         };
-        int spriteH = switch (typ) {
-            case TYP5, TYP6 -> 72;
-            case TYP7, TYP8 -> 88;
-            default         -> 60;
-        };
-        int hitbox = switch (typ) {
-            case TYP5, TYP6 -> HITBOX_MITTEL;
-            case TYP7, TYP8 -> HITBOX_GROSS;
-            default         -> HITBOX_KLEIN;
-        };
-        if (dateiname != null) {
+        int spriteH = spriteHoehe(typ);
+        int hitbox  = hitboxGroesse(typ);
+        if (dateiname != null && texturExistiert(dateiname)) {
             try {
                 javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(FXGL.image(dateiname));
                 iv.setFitHeight(spriteH);
@@ -171,8 +160,43 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
         return new Rectangle(hitbox, hitbox, typ.farbe);
     }
 
-    /** Lädt Lehrer-Textur oder fällt auf blaues Rechteck zurück */
+    static int hitboxGroesse(SchuelerTyp typ) {
+        return switch (typ) {
+            case TYP5, TYP6 -> HITBOX_MITTEL;
+            case TYP7, TYP8 -> HITBOX_GROSS;
+            default         -> HITBOX_KLEIN;
+        };
+    }
+
+    static int spriteHoehe(SchuelerTyp typ) {
+        return switch (typ) {
+            case TYP5, TYP6 -> 72;
+            case TYP7, TYP8 -> 88;
+            default         -> 60;
+        };
+    }
+
+    /**
+     * FXGL wirft bei fehlenden Texturen keine Exception, sondern liefert ein Dummy-Bild.
+     * Darum vorher prüfen, ob die Datei wirklich existiert (z.B. fehlt Gassner.png).
+     */
+    static boolean texturExistiert(String dateiname) {
+        return TeacherTowerDefenseFactory.class.getResource("/assets/textures/" + dateiname) != null;
+    }
+
+    /** Lädt Lehrer-Textur oder fällt auf ein Platzhalter-Kästchen mit Initiale zurück */
     private Node lehrerView(String dateiname, int groesse) {
+        if (!texturExistiert(dateiname)) {
+            Rectangle r = new Rectangle(groesse, groesse, Color.web("#27ae60"));
+            r.setArcWidth(10); r.setArcHeight(10);
+            r.setStroke(Color.WHITE); r.setStrokeWidth(2);
+            javafx.scene.text.Text t = new javafx.scene.text.Text(dateiname.substring(0, 1).toUpperCase());
+            t.setFill(Color.WHITE);
+            t.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
+            javafx.scene.layout.StackPane sp = new javafx.scene.layout.StackPane(r, t);
+            sp.setPrefSize(groesse, groesse);
+            return sp;
+        }
         try {
             javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(FXGL.image(dateiname));
             iv.setFitHeight(groesse); iv.setFitWidth(groesse);

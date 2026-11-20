@@ -49,8 +49,8 @@ public class CustomGameMenu extends FXGLMenu {
 
         // Buttons
         var btnResume    = erstelleBtn("▶   Weiterspielen",  Color.web("#27ae60"), () -> fireResume());
-        var btnHauptmenu = erstelleBtn("🏠   Hauptmenü",     Color.web("#2c3e7a"), () -> fireExitToMainMenu());
-        var btnExit      = erstelleBtn("✕   Beenden",        Color.web("#7f0000"), () -> fireExit());
+        var btnHauptmenu = erstelleBtn("🏠   Hauptmenü",     Color.web("#2c3e7a"), () -> { SaveData.speichern(); fireExitToMainMenu(); });
+        var btnExit      = erstelleBtn("✕   Beenden",        Color.web("#7f0000"), () -> { SaveData.speichern(); fireExit(); });
 
         // Auto-Start Toggle
         Text autoLabel = new Text("Auto-Start nächste Runde:");

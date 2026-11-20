@@ -2,7 +2,6 @@ package at.htl.teachertowerdefense;
 
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.SpawnData;
-import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -179,7 +178,15 @@ public class RoundManager {
 
     private int  aktuelleRunde = 0;
     private boolean rundeAktiv  = false;
+    private boolean gestoppt    = false;
     private Runnable onRundeEnde;
+
+    // Zeitplan der laufenden Runde – läuft über Spielzeit (× speedMulti),
+    // damit 2x-Tempo auch die Spawn-Abstände halbiert und Pausen respektiert werden.
+    private final List<GeplanterSpawn> spawnQueue  = new ArrayList<>();
+    private final List<Double>         payoutQueue = new ArrayList<>();
+    private double rundenZeit = 0;
+    private double endeZeit   = 0;
 
     public void setOnRundeEnde(Runnable r) { this.onRundeEnde = r; }
 
@@ -196,52 +203,75 @@ public class RoundManager {
     public boolean isRundeAktiv()  { return rundeAktiv; }
     public boolean isSpielEnde()   { return aktuelleRunde >= getMaxRunden(); }
 
+    /** Stoppt alle weiteren Spawns (z.B. bei Game Over). */
+    public void stoppen() {
+        gestoppt = true;
+        rundeAktiv = false;
+        spawnQueue.clear();
+        payoutQueue.clear();
+    }
+
+    /** Kurzbeschreibung der nächsten Runde, z.B. "8× Erstklässler · 2× Maturant". */
+    public String getNaechsteRundeBeschreibung() {
+        if (isSpielEnde()) return "";
+        StringBuilder sb = new StringBuilder();
+        for (SpawnGruppe g : RUNDEN.get(aktuelleRunde)) {
+            if (!sb.isEmpty()) sb.append("  ·  ");
+            sb.append(g.anzahl()).append("× ").append(g.typ().anzeigeName);
+        }
+        return sb.toString();
+    }
+
     public void starteNaechsteRunde() {
-        if (rundeAktiv || isSpielEnde()) return;
+        if (rundeAktiv || isSpielEnde() || gestoppt) return;
 
         rundeAktiv = true;
+        rundenZeit = 0;
+        spawnQueue.clear();
+        payoutQueue.clear();
         notifiziereGassnerRundeStart();
 
-        List<SpawnGruppe> gruppen = RUNDEN.get(aktuelleRunde);
         double zeitOffset = 0;
-
-        for (SpawnGruppe gruppe : gruppen) {
+        for (SpawnGruppe gruppe : RUNDEN.get(aktuelleRunde)) {
             for (int i = 0; i < gruppe.anzahl(); i++) {
-                final SchuelerTyp typ = gruppe.typ();
-                final double delay = zeitOffset;
-                FXGL.getGameTimer().runOnceAfter(() -> {
-                    FXGL.spawn("Schueler",
-                            new SpawnData(WaypointData.getROUTE().get(0).getX(),
-                                    WaypointData.getROUTE().get(0).getY())
-                                    .put("typ", typ)
-                                    .put("startWaypoint", 0)
-                    );
-                }, Duration.seconds(delay));
+                spawnQueue.add(new GeplanterSpawn(zeitOffset, gruppe.typ()));
                 zeitOffset += gruppe.delay();
             }
         }
 
-        FXGL.getGameTimer().runOnceAfter(() -> notifiziereGassnerPayout(),
-                Duration.seconds(0.5));
-
-        double mitte = zeitOffset / 2.0;
-        FXGL.getGameTimer().runOnceAfter(() -> notifiziereGassnerPayout(),
-                Duration.seconds(Math.max(mitte, 2.0)));
-
-        final double endeDelay = zeitOffset + 1.0;
-        FXGL.getGameTimer().runOnceAfter(() -> pruefeRundeEnde(), Duration.seconds(endeDelay));
+        payoutQueue.add(0.5);
+        payoutQueue.add(Math.max(zeitOffset / 2.0, 2.0));
+        endeZeit = zeitOffset + 1.0;
     }
 
-    private void pruefeRundeEnde() {
-        int schuelerAnzahl = FXGL.getGameWorld()
-                .getEntitiesByType(EntityType.SCHUELER).size();
-        if (schuelerAnzahl == 0) {
+    /** Wird jeden Frame aus der App aufgerufen. */
+    public void update(double tpf) {
+        if (!rundeAktiv || gestoppt) return;
+        rundenZeit += tpf * GameConfig.speedMulti;
+
+        while (!spawnQueue.isEmpty() && spawnQueue.get(0).zeit() <= rundenZeit) {
+            spawne(spawnQueue.remove(0).typ());
+        }
+        while (!payoutQueue.isEmpty() && payoutQueue.get(0) <= rundenZeit) {
+            payoutQueue.remove(0);
+            notifiziereGassnerPayout();
+        }
+
+        if (rundenZeit >= endeZeit && spawnQueue.isEmpty()
+                && FXGL.getGameWorld().getEntitiesByType(EntityType.SCHUELER).isEmpty()) {
             rundeAktiv = false;
             aktuelleRunde++;
             if (onRundeEnde != null) onRundeEnde.run();
-        } else {
-            FXGL.getGameTimer().runOnceAfter(() -> pruefeRundeEnde(), Duration.seconds(1));
         }
+    }
+
+    private void spawne(SchuelerTyp typ) {
+        FXGL.spawn("Schueler",
+                new SpawnData(WaypointData.getROUTE().get(0).getX(),
+                        WaypointData.getROUTE().get(0).getY())
+                        .put("typ", typ)
+                        .put("startWaypoint", 0)
+        );
     }
 
     private void notifiziereGassnerRundeStart() {
@@ -259,4 +289,5 @@ public class RoundManager {
     }
 
     public record SpawnGruppe(SchuelerTyp typ, int anzahl, double delay) {}
+    private record GeplanterSpawn(double zeit, SchuelerTyp typ) {}
 }
