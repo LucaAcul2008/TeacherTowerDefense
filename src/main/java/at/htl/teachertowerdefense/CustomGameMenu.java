@@ -19,6 +19,10 @@ public class CustomGameMenu extends FXGLMenu {
     private Rectangle autoBtn;
     private Text      autoText;
 
+    // Sound/Musik-Schalter (Zustand liegt in SaveData, kann auch per Taste M geändert werden)
+    private Rectangle soundBtn, musikBtn;
+    private Text      soundText, musikText;
+
     public CustomGameMenu() {
         super(MenuType.GAME_MENU);
 
@@ -68,17 +72,28 @@ public class CustomGameMenu extends FXGLMenu {
         autoBtn.setOnMouseClicked(e -> toggleAutoStart());
         autoText.setOnMouseClicked(e -> toggleAutoStart());
 
+        // Sound / Musik
+        soundBtn = new Rectangle(52, 26); soundBtn.setArcWidth(26); soundBtn.setArcHeight(26);
+        soundText = new Text(); soundText.setStyle("-fx-font-size: 11px; -fx-font-weight: bold;");
+        musikBtn = new Rectangle(52, 26); musikBtn.setArcWidth(26); musikBtn.setArcHeight(26);
+        musikText = new Text(); musikText.setStyle("-fx-font-size: 11px; -fx-font-weight: bold;");
+        HBox soundRow = schalterZeile("🔊  Soundeffekte:", soundBtn, soundText,
+                () -> Sounds.setSoundAn(!SaveData.soundAn));
+        HBox musikRow = schalterZeile("🎵  Musik (Taste M):", musikBtn, musikText,
+                () -> Sounds.setMusikAn(!SaveData.musikAn));
+        aktualisiereAudioSchalter();
+
         Line trenn2 = new Line(0, 0, 300, 0);
         trenn2.setStroke(Color.web("#333355"));
 
         // Layout
         VBox layout = new VBox(14,
                 titel, statsRow, trenn1,
-                btnResume, btnHauptmenu, autoRow,
+                btnResume, btnHauptmenu, autoRow, soundRow, musikRow,
                 trenn2, btnExit);
         layout.setAlignment(Pos.CENTER);
 
-        double bgH = 380;
+        double bgH = 460;
         double bgW = 380;
         double startX = W / 2.0 - bgW / 2.0;
         double startY = H / 2.0 - bgH / 2.0;
@@ -95,6 +110,35 @@ public class CustomGameMenu extends FXGLMenu {
         layout.setTranslateY(startY);
 
         getContentRoot().getChildren().addAll(bg, layout);
+    }
+
+    @Override
+    public void onEnteredFrom(com.almasb.fxgl.scene.Scene prev) {
+        super.onEnteredFrom(prev);
+        aktualisiereAudioSchalter();
+    }
+
+    private HBox schalterZeile(String label, Rectangle btn, Text text, Runnable aktion) {
+        Text l = new Text(label);
+        l.setFill(Color.LIGHTGRAY);
+        l.setStyle("-fx-font-size: 13px;");
+        StackPane toggle = new StackPane(btn, text);
+        toggle.setCursor(javafx.scene.Cursor.HAND);
+        toggle.setOnMouseClicked(e -> { aktion.run(); aktualisiereAudioSchalter(); Sounds.play("klick"); });
+        HBox row = new HBox(16, l, toggle);
+        row.setAlignment(Pos.CENTER);
+        return row;
+    }
+
+    private void aktualisiereAudioSchalter() {
+        setzeSchalter(soundBtn, soundText, SaveData.soundAn);
+        setzeSchalter(musikBtn, musikText, SaveData.musikAn);
+    }
+
+    private void setzeSchalter(Rectangle btn, Text text, boolean an) {
+        btn.setFill(an ? Color.web("#27ae60") : Color.web("#555555"));
+        text.setText(an ? "AN" : "AUS");
+        text.setFill(an ? Color.WHITE : Color.LIGHTGRAY);
     }
 
     private void toggleAutoStart() {

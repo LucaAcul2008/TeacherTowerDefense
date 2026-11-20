@@ -44,6 +44,7 @@ public class PotionComponent extends Component {
     }
 
     private void explodieren(Point2D pos) {
+        Sounds.play("explosion");
         for (Entity s : FXGL.getGameWorld().getEntitiesByType(EntityType.SCHUELER)) {
             if (s.getCenter().distance(pos) <= AOE_RADIUS) {
                 s.getComponent(SchuelerComponent.class).damage(damage);

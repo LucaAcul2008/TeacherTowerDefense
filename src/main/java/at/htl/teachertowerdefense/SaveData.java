@@ -18,6 +18,10 @@ public class SaveData {
     public static boolean[][] skinFreigeschaltet  = new boolean[3][2];
     public static final int[] SKIN_PREISE         = { 200, 300, 250 };
 
+    // ── AUDIO ────────────────────────────────────────────────────
+    public static boolean soundAn = true;
+    public static boolean musikAn = true;
+
     // -------------------------------------------------------
     // Laden / Speichern
     // -------------------------------------------------------
@@ -35,6 +39,9 @@ public class SaveData {
             for (int p = 0; p < 3; p++)
                 for (int s = 0; s < 5; s++)
                     upgradesFrei[l][p][s] = PREFS.getBoolean("upg_" + l + "_" + p + "_" + s, false);
+
+        soundAn = PREFS.getBoolean("sound_an", true);
+        musikAn = PREFS.getBoolean("musik_an", true);
 
         // Skins laden
         for (int i = 0; i < 3; i++) {
@@ -57,6 +64,9 @@ public class SaveData {
             for (int p = 0; p < 3; p++)
                 for (int s = 0; s < 5; s++)
                     PREFS.putBoolean("upg_" + l + "_" + p + "_" + s, upgradesFrei[l][p][s]);
+
+        PREFS.putBoolean("sound_an", soundAn);
+        PREFS.putBoolean("musik_an", musikAn);
 
         // Skins speichern
         for (int i = 0; i < 3; i++) {
@@ -139,5 +149,7 @@ public class SaveData {
         upgradesFrei = new boolean[5][3][5];
         aktiverSkin = new int[3];
         skinFreigeschaltet = new boolean[3][2];
+        soundAn = true;
+        musikAn = true;
     }
 }

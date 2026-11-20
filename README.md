@@ -21,6 +21,9 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
 - **Lehrer-Skins** kaufbar im Hauptmenü
 - **3 Schwierigkeitsgrade** (Easy / Medium / Hard) mit unterschiedlichem Startgeld und Schüler-HP
 - **Spielgeschwindigkeit** umschaltbar (1x / 2x)
+- **Sound & Musik** im Retro-Stil (Effekte für Würfe, Treffer, Upgrades, Schulglocke zum Rundenstart; Musik im Menü und im Spiel)
+    - im Pause-Menü einzeln abschaltbar, Musik auch mit Taste **M**
+    - alle Dateien werden von `tools/gen_sounds.py` synthetisch erzeugt
 - **Speichersystem** über Java Preferences API (kein externes File nötig)
 
 ## Steuerung
@@ -33,6 +36,7 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
 | Lehrer abwählen | Rechtsklick |
 | Runde starten | Start-Button oder **Leertaste** (oder Auto-Start aktivieren) |
 | Spielgeschwindigkeit | 1x / 2x Button oder **F** |
+| Musik an/aus | **M** |
 | Menü öffnen | ESC |
 
 ## Schülertypen

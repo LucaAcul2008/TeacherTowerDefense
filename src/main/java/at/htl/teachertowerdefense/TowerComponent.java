@@ -85,6 +85,13 @@ public class TowerComponent extends Component {
             proj.setProperty("lehrer", entity);
         }
 
+        Sounds.play(switch (projektilTyp) {
+            case "ProjektilBoomerang" -> "wurf_fisch";
+            case "ProjektilGolfball"  -> "wurf_golf";
+            case "ProjektilPotion"    -> "wurf_trank";
+            case "ProjektilMusikdisk" -> "wurf_musik";
+            default                   -> "wurf_floppy";
+        });
         shootTimer.capture();
     }
 

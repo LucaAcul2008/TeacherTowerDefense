@@ -79,6 +79,7 @@ public class SchuelerComponent extends Component {
 
     private void sterben(int overkillDamage) {
         FXGL.inc("geld", typ.belohnung);
+        Sounds.play("pop");
 
         // Münzen-Animation
         javafx.scene.text.Text coinText = new javafx.scene.text.Text("+" + typ.belohnung + " 💰");

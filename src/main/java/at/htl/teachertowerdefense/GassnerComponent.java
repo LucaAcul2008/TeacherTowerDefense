@@ -22,6 +22,7 @@ public class GassnerComponent extends Component {
         FXGL.inc("geld", betrag);
         generatedGeld += betrag;
         zeigeMuenzenAnimation(betrag);
+        Sounds.play("muenze");
 
         int stufeC = entity.getComponent(LehrerComponent.class).getStufePfadC();
         int lebenBonus = 0;

@@ -112,11 +112,13 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
 
         GameConfig.speedMulti = 1.0;
+        Sounds.musik("musik_spiel");
 
         roundManager = new RoundManager();
         roundManager.setOnRundeEnde(() -> {
             FXGL.set("runde", roundManager.getAktuelleRundeAnzeige());
             if (spielVorbei) return;
+            if (!roundManager.isSpielEnde()) Sounds.play("runde_geschafft");
             if (roundManager.isSpielEnde()) {
                 beendeSpiel();
                 SaveData.mapBeendet(GameConfig.selectedMap, GameConfig.selectedDiff,
@@ -213,6 +215,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         // Tastenkürzel
         FXGL.onKeyDown(javafx.scene.input.KeyCode.SPACE, "Runde starten", this::starteRunde);
+        FXGL.onKeyDown(javafx.scene.input.KeyCode.M, "Musik umschalten",
+                () -> Sounds.setMusikAn(!SaveData.musikAn));
         FXGL.onKeyDown(javafx.scene.input.KeyCode.F, "Tempo umschalten", () -> {
             if (speedBtn != null && !spielVorbei) toggleSpeed(speedBtn, speedText);
         });
@@ -424,7 +428,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
             skinTexts[i].setOnMouseClicked(skinBtns[i].getOnMouseClicked());
         }
 
-        Text settingsHint = mkText("ESC Menü  ·  LEERTASTE Start  ·  F Tempo", PX + 4, 637, Color.web("#7777aa"), 9, false);
+        Text settingsHint = mkText("ESC Menü · LEER Start · F Tempo · M Musik", PX + 4, 637, Color.web("#7777aa"), 9, false);
 
 
 
@@ -475,6 +479,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
     }
 
     private void zeigeGewonnen(int muenzen) {
+        Sounds.musikBeenden();
+        Sounds.play("gewonnen");
         int maxRunden = roundManager.getMaxRunden();
 
         Rectangle overlay = new Rectangle(1200, 640, Color.color(0.0, 0.05, 0.0, 0.88));
@@ -661,19 +667,31 @@ public class TeacherTowerDefenseApp extends GameApplication {
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
         switch (pfad) {
             case 'A' -> {
-                if (!lc.istFreigeschaltetA()) { lc.freischaltenA(); aktualisiereUpgradePanel(); return; }
-                int k = lc.kostenA(); if (k < 0 || FXGL.geti("geld") < k) return;
+                if (!lc.istFreigeschaltetA()) {
+                    Sounds.play(lc.freischaltenA() ? "freischalten" : "fehler");
+                    aktualisiereUpgradePanel(); return;
+                }
+                int k = lc.kostenA(); if (k < 0 || FXGL.geti("geld") < k) { Sounds.play("fehler"); return; }
                 FXGL.inc("geld", -k); lc.upgradeA();
+                Sounds.play("upgrade");
             }
             case 'B' -> {
-                if (!lc.istFreigeschaltetB()) { lc.freischaltenB(); aktualisiereUpgradePanel(); return; }
-                int k = lc.kostenB(); if (k < 0 || FXGL.geti("geld") < k) return;
+                if (!lc.istFreigeschaltetB()) {
+                    Sounds.play(lc.freischaltenB() ? "freischalten" : "fehler");
+                    aktualisiereUpgradePanel(); return;
+                }
+                int k = lc.kostenB(); if (k < 0 || FXGL.geti("geld") < k) { Sounds.play("fehler"); return; }
                 FXGL.inc("geld", -k); lc.upgradeB();
+                Sounds.play("upgrade");
             }
             case 'C' -> {
-                if (!lc.istFreigeschaltetC()) { lc.freischaltenC(); aktualisiereUpgradePanel(); return; }
-                int k = lc.kostenC(); if (k < 0 || FXGL.geti("geld") < k) return;
+                if (!lc.istFreigeschaltetC()) {
+                    Sounds.play(lc.freischaltenC() ? "freischalten" : "fehler");
+                    aktualisiereUpgradePanel(); return;
+                }
+                int k = lc.kostenC(); if (k < 0 || FXGL.geti("geld") < k) { Sounds.play("fehler"); return; }
                 FXGL.inc("geld", -k); lc.upgradeC();
+                Sounds.play("upgrade");
             }
         }
         aktualisiereRangeIndicator();
@@ -685,6 +703,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
         int refund = (int) (lc.getInvestiertesGeld() * 0.75);
         FXGL.inc("geld", refund);
+        Sounds.play("muenze");
         ausgewaehlterLehrer.removeFromWorld();
         deselect();
     }
@@ -706,6 +725,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         int nummer = roundManager.getAktuelleRundeAnzeige();
         aktualisiereStartButton(false);
         roundManager.starteNaechsteRunde();
+        Sounds.play("rundenstart");
         zeigeRundenBanner("Runde " + nummer + " / " + roundManager.getMaxRunden(), beschreibung);
     }
 
@@ -738,6 +758,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
     /** Kurzer roter Blitz über der Karte, wenn ein Schüler entkommt. */
     private void zeigeTrefferBlitz() {
+        Sounds.play("leben_verloren");
         Rectangle blitz = new Rectangle(960, 640, Color.color(0.9, 0, 0, 0.28));
         blitz.setMouseTransparent(true);
         FXGL.getGameScene().addUINode(blitz);
@@ -903,6 +924,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
                     Entity l = FXGL.spawn(spawnName, mx - 24, my - 24);
                     l.getComponent(LehrerComponent.class).setBaseKosten(kosten);
                     FXGL.inc("geld", -kosten);
+                    Sounds.play("platzieren");
+                } else if (mx < 960) {
+                    Sounds.play("fehler");
                 }
                 lehrerSchatten.removeFromWorld(); lehrerSchatten = null;
             }
@@ -948,6 +972,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
 
     private void zeigeGameOver() {
+        Sounds.musikBeenden();
+        Sounds.play("game_over");
         int erreichtRunde = roundManager.getAktuelleRundeAnzeige();
         int maxRunden     = roundManager.getMaxRunden();
 

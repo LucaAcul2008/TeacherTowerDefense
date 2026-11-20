@@ -281,6 +281,7 @@ public class CustomMainMenu extends FXGLMenu {
     public void onEnteredFrom(com.almasb.fxgl.scene.Scene prev) {
         super.onEnteredFrom(prev);
         SaveData.laden();
+        Sounds.musik("musik_menu");
         muenzenText.setText("💰  " + SaveData.muenzen + " Münzen");
         for (int i = 0; i < sterneTexte.length; i++) {
             if (sterneTexte[i] == null) continue;
