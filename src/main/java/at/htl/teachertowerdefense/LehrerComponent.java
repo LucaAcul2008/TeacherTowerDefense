@@ -351,8 +351,10 @@ public class LehrerComponent extends Component {
             return switch (p) {
                 case 'A' -> String.format("+%.0f Aura-Radius", u.rangeDelta);
                 case 'B' -> "+" + u.damageDelta + " Schadens-Buff";
-                default  -> String.format(java.util.Locale.GERMAN, "Tempo-Buff +%.2f s",
-                        AignerBuffComponent.SPEED_BONI[s + 1] - AignerBuffComponent.SPEED_BONI[s]);
+                default  -> {
+                    double[] f = AignerBuffComponent.TEMPO_FAKTOR;
+                    yield "Tempo-Buff " + Math.round((1 - f[s]) * 100) + " % → " + Math.round((1 - f[s + 1]) * 100) + " %";
+                }
             };
         }
         if (lehrerTyp == 4) { // Gassner – Geld

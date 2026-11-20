@@ -68,13 +68,14 @@ public class CustomMainMenu extends FXGLMenu {
         overlay.setTranslateY(H - 320);
         getContentRoot().getChildren().add(overlay);
 
-        // ── Münzen oben links ────────────────────────────────────
-        Rectangle muenzenBg = new Rectangle(180, 44, Color.color(0,0,0,0.65));
+        // ── Diamanten (Skin-Währung) oben links ──────────────────
+        Rectangle muenzenBg = new Rectangle(200, 44, Color.color(0.02, 0.10, 0.16, 0.8));
         muenzenBg.setArcWidth(10); muenzenBg.setArcHeight(10);
         muenzenBg.setTranslateX(20); muenzenBg.setTranslateY(20);
+        muenzenBg.setStroke(GameConfig.DIAMANT_FARBE.darker()); muenzenBg.setStrokeWidth(1.5);
 
-        muenzenText = mkText("💰  " + SaveData.muenzen + " Münzen", 32, 47,
-                Color.web("#f1c40f"), 15, true);
+        muenzenText = mkText(GameConfig.diamanten(SaveData.muenzen), 32, 47,
+                GameConfig.DIAMANT_FARBE, 15, true);
 
         getContentRoot().getChildren().addAll(muenzenBg, muenzenText);
 
@@ -121,7 +122,7 @@ public class CustomMainMenu extends FXGLMenu {
             skinBtn.setStrokeWidth(aktiv ? 2.0 : 1.0);
 
             // Label im Button
-            String btnLabel = gekauft ? (aktiv ? "✓  AN" : "○  AUS") : skinPreise[i] + " 💰";
+            String btnLabel = gekauft ? (aktiv ? "✓  AN" : "○  AUS") : skinPreise[i] + " " + GameConfig.DIAMANT;
             Text skinBtnText = mkText(btnLabel, bx + 12, SKIN_Y + 74, Color.WHITE, 11, true);
 
             // Status-Text unter Button
@@ -137,7 +138,7 @@ public class CustomMainMenu extends FXGLMenu {
 
             skinBtn.setOnMouseClicked(e -> {
                 if (SaveData.kaufeSkin(idx)) {
-                    muenzenText.setText("💰  " + SaveData.muenzen + " Münzen");
+                    muenzenText.setText(GameConfig.diamanten(SaveData.muenzen));
                     boolean jetzt = SaveData.aktiverSkin[idx] == 1;
                     skinBtn.setFill(jetzt ? Color.web("#6c3483") : Color.web("#1f3a8a"));
                     skinBtn.setStroke(jetzt ? Color.web("#9b59b6") : Color.web("#555577"));
@@ -232,7 +233,7 @@ public class CustomMainMenu extends FXGLMenu {
             btn.setTranslateY(H - 95);
             diffBtns[i] = btn;
 
-            String label = DIFF_NAMEN[i] + "  +" + DIFF_MUENZEN[i] + "💰";
+            String label = DIFF_NAMEN[i] + "  +" + DIFF_MUENZEN[i] + GameConfig.DIAMANT;
             Text txt = mkText(label,
                     diffStartX + i * (diffW + 12) + 10, H - 70,
                     i == 0 ? Color.WHITE : Color.GRAY, 11, true);
@@ -282,7 +283,7 @@ public class CustomMainMenu extends FXGLMenu {
         super.onEnteredFrom(prev);
         SaveData.laden();
         Sounds.musik("musik_menu");
-        muenzenText.setText("💰  " + SaveData.muenzen + " Münzen");
+        muenzenText.setText(GameConfig.diamanten(SaveData.muenzen));
         for (int i = 0; i < sterneTexte.length; i++) {
             if (sterneTexte[i] == null) continue;
             int s = SaveData.getSterne(i);

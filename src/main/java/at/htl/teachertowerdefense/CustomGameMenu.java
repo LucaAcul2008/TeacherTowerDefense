@@ -41,8 +41,8 @@ public class CustomGameMenu extends FXGLMenu {
         xpText.setStyle("-fx-font-size: 13px;");
 
         // Münzen Anzeige
-        Text muenzenText = new Text("💰  Münzen: " + SaveData.muenzen);
-        muenzenText.setFill(Color.web("#f1c40f"));
+        Text muenzenText = new Text(GameConfig.diamanten(SaveData.muenzen));
+        muenzenText.setFill(GameConfig.DIAMANT_FARBE);
         muenzenText.setStyle("-fx-font-size: 13px;");
 
         HBox statsRow = new HBox(24, xpText, muenzenText);

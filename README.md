@@ -4,7 +4,7 @@ Ein 2D Tower-Defense-Spiel entwickelt mit **Java 25** und **FXGL 17.3** als POS-
 
 ## Spielkonzept
 
-Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategisch auf der Karte, um die Schüler aufzuhalten, bevor sie den Ausgang erreichen. Verbesserungen, Skins und neue Karten können durch das Sammeln von Münzen und XP freigeschaltet werden.
+Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategisch auf der Karte, um die Schüler aufzuhalten, bevor sie den Ausgang erreichen. Verbesserungen, Skins und neue Karten können durch das Sammeln von Diamanten 💎 und XP freigeschaltet werden.
 
 ## Features
 
@@ -20,7 +20,7 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
 - **3 Karten** (HTL Saalfelden, City, Schulausflug) mit eigenen Wegstrecken
     - Schulausflug wird freigeschaltet, sobald City auf Easy geschafft ist
     - Map3.tmx wird von `tools/gen_map3.py` erzeugt (Vorschau: `java tools/TmxTool.java render ...`)
-- **Meta-Progression**: Münzen & XP bleiben zwischen Spielsessions erhalten
+- **Meta-Progression**: Diamanten 💎 (Skin-Währung) & XP bleiben zwischen Spielsessions erhalten – im Spiel bezahlt man Lehrer und Upgrades mit 💰 €
 - **Lehrer-Skins** kaufbar im Hauptmenü
 - **3 Schwierigkeitsgrade** (Easy / Medium / Hard) mit unterschiedlichem Startgeld und Schüler-HP
 - **Spielgeschwindigkeit** umschaltbar (1x / 2x)

@@ -121,7 +121,7 @@ public class LehrerUpgradePfade {
     // ── LEHRER 4: AIGNER – Bufferin (Ethiklehrerin) ──────────────
     public static final double BASE_RANGE_L4        = 120;
     public static final double BASE_SHOOT_DELAY_L4  = 0.0;
-    public static final int    BASE_DAMAGE_L4       = 1;
+    public static final int    BASE_DAMAGE_L4       = 0; // Schadens-Buff nur über Pfad B (früher +1 schon ohne Upgrade)
     public static final int    BASE_MULTI_TARGET_L4 = 0;
 
     public static final List<LehrerUpgrade> LEHRER4_PFAD_A = List.of(
@@ -132,11 +132,11 @@ public class LehrerUpgradePfade {
             LehrerUpgrade.range("Schulweite Aura",        1100, 800,  50)
     );
     public static final List<LehrerUpgrade> LEHRER4_PFAD_B = List.of(
-            LehrerUpgrade.damage("Motivationsschub",       100,   0,  1),
-            LehrerUpgrade.damage("Begeisterungsfeuer",     220,  60,  1),
-            LehrerUpgrade.damage("Vollgasmodus",           380, 180,  2),
-            LehrerUpgrade.damage("Übermenschen-Trainer",   650, 400,  2),
-            LehrerUpgrade.damage("Göttlicher Antrieb",    1100, 800,  4)
+            LehrerUpgrade.damage("Motivationsschub",       200,   0,  1),
+            LehrerUpgrade.damage("Begeisterungsfeuer",     350,  60,  1),
+            LehrerUpgrade.damage("Vollgasmodus",           550, 180,  1),
+            LehrerUpgrade.damage("Übermenschen-Trainer",   800, 400,  1),
+            LehrerUpgrade.damage("Göttlicher Antrieb",    1300, 800,  2)
     );
     public static final List<LehrerUpgrade> LEHRER4_PFAD_C = List.of(
             new LehrerUpgrade("Tempo-Vortrag",              80,   0, 0, 0, 0, 0, false),

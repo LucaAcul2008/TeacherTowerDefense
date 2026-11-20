@@ -393,7 +393,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
             skinBtns[i].setTranslateX(PX + 60 + i * 66); skinBtns[i].setTranslateY(595);
             skinBtns[i].setStroke(Color.web("#9b59b6")); skinBtns[i].setStrokeWidth(1);
 
-            String btnLabel = gekauft ? (aktiv ? "✓ AN" : "○ AUS") : SaveData.SKIN_PREISE[i] + "💰";
+            String btnLabel = gekauft ? (aktiv ? "✓ AN" : "○ AUS") : SaveData.SKIN_PREISE[i] + GameConfig.DIAMANT;
             skinTexts[i] = mkText(btnLabel, PX + 64 + i * 66, 617, Color.WHITE, 10, true);
 
             skinBtns[i].setOnMouseClicked(e -> {
@@ -404,7 +404,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
                         skinBtns[j].setFill(jAktiv ? Color.web("#6c3483")
                                 : jGekauft ? Color.web("#2c3e7a")
                                 : Color.color(0.1, 0.1, 0.1, 0.9));
-                        skinTexts[j].setText(jGekauft ? (jAktiv ? "✓ AN" : "○ AUS") : SaveData.SKIN_PREISE[j] + "💰");
+                        skinTexts[j].setText(jGekauft ? (jAktiv ? "✓ AN" : "○ AUS") : SaveData.SKIN_PREISE[j] + GameConfig.DIAMANT);
                     }
                 }
             });
@@ -485,9 +485,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
         String diffName = switch (GameConfig.selectedDiff) {
             case 1 -> "Medium"; case 2 -> "Hard"; default -> "Easy";
         };
-        Text diffText = new Text("Schwierigkeit: " + diffName + "  |  +" + muenzen + " Münzen");
+        Text diffText = new Text("Schwierigkeit: " + diffName + "  |  +" + muenzen + " " + GameConfig.DIAMANT + " " + GameConfig.DIAMANT_NAME);
         diffText.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
-        diffText.setFill(Color.web("#f1c40f")); diffText.setTextAlignment(TextAlignment.CENTER);
+        diffText.setFill(GameConfig.DIAMANT_FARBE); diffText.setTextAlignment(TextAlignment.CENTER);
 
         Text statsLabel = new Text("Lehrer-Statistiken");
         statsLabel.setFont(Font.font("Arial", FontWeight.BOLD, 15));
@@ -562,9 +562,9 @@ public class TeacherTowerDefenseApp extends GameApplication {
         if (lehrerIdx == 3 && ausgewaehlterLehrer.hasComponent(AignerBuffComponent.class)) {
             AignerBuffComponent ab = ausgewaehlterLehrer.getComponent(AignerBuffComponent.class);
             statRange.setText(String.format("🔮  %.0fpx Aura",   ab.getBuffRadius()));
-            statDamage.setText(String.format("⚔+  %d Buff",      ab.getDamageBonus()));
-            statSpeed.setText(String.format("⚡+  %.2fs Tempo",   ab.getShootDelayBonus()));
-            statTargets.setText("(Bufferin)");
+            statDamage.setText(String.format("⚔+  %d Schaden",   ab.getDamageBonus()));
+            statSpeed.setText(String.format("⚡+  %d %% Tempo",   ab.getTempoProzent()));
+            statTargets.setText("(stapelt nicht)");
         } else if (lehrerIdx == 4 && ausgewaehlterLehrer.hasComponent(GassnerComponent.class)) {
             GassnerComponent gc = ausgewaehlterLehrer.getComponent(GassnerComponent.class);
             int stufeC = lc.getStufePfadC();

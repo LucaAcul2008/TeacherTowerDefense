@@ -8,6 +8,17 @@ public class GameConfig {
     public static int selectedDiff = 0; // 0=Easy, 1=Medium, 2=Hard
     public static double speedMulti = 1.0;
 
+    // ── Skin-Währung ─────────────────────────────────────────────
+    // Bleibt zwischen Spielen erhalten und sieht bewusst anders aus als das Spielgeld (💰 €, gold).
+    public static final String DIAMANT       = "💎";
+    public static final String DIAMANT_NAME  = "Diamanten";
+    public static final javafx.scene.paint.Color DIAMANT_FARBE = javafx.scene.paint.Color.web("#5ce1ff");
+
+    /** z.B. "💎  120 Diamanten" */
+    public static String diamanten(int anzahl) {
+        return DIAMANT + "  " + anzahl + " " + DIAMANT_NAME;
+    }
+
     /** Höchstens so viele Lehrer gleichzeitig auf der Karte – man soll upgraden statt spammen. */
     public static final int MAX_LEHRER = 8;
 

@@ -42,14 +42,17 @@ public class TowerComponent extends Component {
         int    damage     = lc != null ? lc.getDamage()     : 1;
         int    maxTargets = lc != null ? lc.getMultiTarget(): 1;
 
-        // Aigner-Buff: Boni von benachbarten Aigners einrechnen
+        // Aigner-Buff: nur der stärkste Buff in Reichweite zählt (kein Stapeln)
+        List<AignerBuffComponent.Buff> buffs = new ArrayList<>();
         for (Entity a : FXGL.getGameWorld().getEntitiesByType(EntityType.LEHRER)) {
             if (!a.hasComponent(AignerBuffComponent.class)) continue;
             AignerBuffComponent ab = a.getComponent(AignerBuffComponent.class);
-            if (entity.getCenter().distance(a.getCenter()) <= ab.getBuffRadius()) {
-                damage    += ab.getDamageBonus();
-                shootDelay = Math.max(0.1, shootDelay - ab.getShootDelayBonus());
-            }
+            if (entity.getCenter().distance(a.getCenter()) <= ab.getBuffRadius()) buffs.add(ab.getBuff());
+        }
+        if (!buffs.isEmpty()) {
+            AignerBuffComponent.Buff buff = AignerBuffComponent.besterBuff(buffs);
+            damage    += buff.schaden();
+            shootDelay = Math.max(0.1, shootDelay * buff.tempoFaktor());
         }
 
         if (!shootTimer.elapsed(Duration.seconds(shootDelay / GameConfig.speedMulti))) return;
