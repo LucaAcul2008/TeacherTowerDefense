@@ -43,6 +43,8 @@ public class TeacherTowerDefenseApp extends GameApplication {
     /** true sobald Gewonnen- oder Game-Over-Screen angezeigt wird. */
     private boolean spielVorbei = false;
 
+    private EinstellungenPanel einstellungen;
+
     private Rectangle speedBtn;
     private Text      speedText;
 
@@ -109,6 +111,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         lehrerSchatten      = null;
         ausgewaehlterLehrer = null;
         rangeIndicator      = null;
+        einstellungen       = null;
         SaveData.laden();
         SaveData.mapFreigeschaltet[1] = true;
         FXGL.getGameWorld().addEntityFactory(new TeacherTowerDefenseFactory());
@@ -201,7 +204,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         FXGL.getInput().addEventHandler(javafx.scene.input.MouseEvent.MOUSE_PRESSED, e -> {
             if (e.getButton() == MouseButton.SECONDARY) { deselect(); return; }
             if (e.getButton() != MouseButton.PRIMARY) return;
-            if (lehrerSchatten != null || spielVorbei) return;
+            if (lehrerSchatten != null || spielVorbei || einstellungenOffen()) return;
 
             // 1. Koordinaten aus der FXGL-Welt holen (diese sind korrekt skaliert)
             double wx = FXGL.getInput().getMouseXWorld();
@@ -230,7 +233,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
         FXGL.onKeyDown(javafx.scene.input.KeyCode.M, "Musik umschalten",
                 () -> Sounds.setMusikAn(!SaveData.musikAn));
         FXGL.onKeyDown(javafx.scene.input.KeyCode.F, "Tempo umschalten", () -> {
-            if (speedBtn != null && !spielVorbei) toggleSpeed(speedBtn, speedText);
+            if (speedBtn != null && !spielVorbei && !einstellungenOffen()) toggleSpeed(speedBtn, speedText);
         });
     }
 
@@ -475,8 +478,36 @@ public class TeacherTowerDefenseApp extends GameApplication {
 
         for (javafx.scene.Node node : panelNodes) FXGL.getGameScene().addUINode(node);
 
+        // === EINSTELLUNGEN (⚙ oben rechts im Info-Feld) – pausiert das Spiel, solange offen ===
+        einstellungen = new EinstellungenPanel(GameConfig.breite, GameConfig.hoehe, false, null,
+                () -> FXGL.getGameController().resumeEngine());
+        Rectangle zahnradBg = new Rectangle(30, 30, Color.color(1, 1, 1, 0.12));
+        zahnradBg.setArcWidth(8); zahnradBg.setArcHeight(8);
+        zahnradBg.setTranslateX(184); zahnradBg.setTranslateY(16);
+        Text zahnrad = new Text("⚙");
+        zahnrad.setFill(Color.WHITE);
+        zahnrad.setStyle("-fx-font-size: 18px;");
+        zahnrad.setTextOrigin(javafx.geometry.VPos.CENTER);
+        zahnrad.setTranslateX(199 - zahnrad.getLayoutBounds().getWidth() / 2);
+        zahnrad.setTranslateY(31);
+        zahnrad.setMouseTransparent(true);
+        zahnradBg.setCursor(javafx.scene.Cursor.HAND);
+        zahnradBg.setOnMouseEntered(e -> zahnradBg.setFill(Color.color(1, 1, 1, 0.25)));
+        zahnradBg.setOnMouseExited(e  -> zahnradBg.setFill(Color.color(1, 1, 1, 0.12)));
+        zahnradBg.setOnMouseClicked(e -> { e.consume(); oeffneEinstellungen(); });
+        FXGL.getGameScene().addUINodes(zahnradBg, zahnrad, einstellungen);
+    }
 
+    private void oeffneEinstellungen() {
+        if (einstellungen == null || einstellungen.istOffen()) return;
+        if (lehrerSchatten != null) { lehrerSchatten.removeFromWorld(); lehrerSchatten = null; }
+        FXGL.getGameController().pauseEngine();
+        einstellungen.oeffnen();
+    }
 
+    /** Solange das Einstellungsfenster offen ist, reagiert das Spiel nicht auf Klicks und Tasten. */
+    private boolean einstellungenOffen() {
+        return einstellungen != null && einstellungen.istOffen();
     }
 
 
@@ -744,7 +775,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
     }
 
     private void upgradePerTaste(char pfad) {
-        if (!spielVorbei && ausgewaehlterLehrer != null) kaufeUpgrade(pfad);
+        if (!spielVorbei && !einstellungenOffen() && ausgewaehlterLehrer != null) kaufeUpgrade(pfad);
     }
 
     private void kaufeUpgrade(char pfad) {
@@ -797,7 +828,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
     }
 
     private void verkaufeLehrer() {
-        if (spielVorbei || ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
+        if (spielVorbei || einstellungenOffen() || ausgewaehlterLehrer == null || !ausgewaehlterLehrer.isActive()) return;
         LehrerComponent lc = ausgewaehlterLehrer.getComponent(LehrerComponent.class);
         int refund = (int) (lc.getInvestiertesGeld() * 0.75);
         FXGL.inc("geld", refund);
@@ -819,7 +850,7 @@ public class TeacherTowerDefenseApp extends GameApplication {
     // ============================================================
 
     private void starteRunde() {
-        if (roundManager == null || spielVorbei) return;
+        if (roundManager == null || spielVorbei || einstellungenOffen()) return;
         if (roundManager.isRundeAktiv() || roundManager.isSpielEnde()) return;
         String beschreibung = roundManager.getNaechsteRundeBeschreibung();
         int nummer = roundManager.getAktuelleRundeAnzeige();

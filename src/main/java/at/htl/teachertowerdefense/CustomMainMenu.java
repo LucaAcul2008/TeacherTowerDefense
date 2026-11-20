@@ -37,10 +37,8 @@ public class CustomMainMenu extends FXGLMenu {
     private Text[] mapNamenTexte = new Text[GameConfig.ANZAHL_MAPS];
     private Text[] lockTexte = new Text[GameConfig.ANZAHL_MAPS];
 
-    // Einstellungen
-    private Pane einstellungen;
-    private Rectangle sSound, sMusik, sVollbild, sAlleFrei;
-    private Text tSound, tMusik, tVollbild, tAlleFrei;
+    // Einstellungen (gemeinsames Fenster mit dem Spiel)
+    private EinstellungenPanel einstellungen;
 
     // Diff-Buttons
     private Rectangle[] diffBtns = new Rectangle[3];
@@ -61,6 +59,9 @@ public class CustomMainMenu extends FXGLMenu {
 
         // ── Hintergrundbild ──────────────────────────────────────
         try {
+            // FXGL liefert bei fehlender Datei keine Exception, sondern ein schwarz-pinkes Ersatzbild
+            if (!TeacherTowerDefenseFactory.texturExistiert("menu_bg.png"))
+                throw new IllegalStateException("menu_bg.png fehlt");
             // Bild füllt den ganzen Bildschirm, ohne verzerrt zu werden (Überstand wird abgeschnitten)
             javafx.scene.image.Image img = FXGL.image("menu_bg.png");
             double skala = Math.max(W / img.getWidth(), H / img.getHeight());
@@ -72,7 +73,10 @@ public class CustomMainMenu extends FXGLMenu {
             bgGruppe.setClip(new Rectangle(W, H));
             getContentRoot().getChildren().add(bgGruppe);
         } catch (Exception e) {
-            Rectangle bg = new Rectangle(W, H, Color.web("#1a2a1a"));
+            Rectangle bg = new Rectangle(W, H, new javafx.scene.paint.LinearGradient(0, 0, 0, 1, true,
+                    javafx.scene.paint.CycleMethod.NO_CYCLE,
+                    new javafx.scene.paint.Stop(0, Color.web("#1d3b2a")),
+                    new javafx.scene.paint.Stop(1, Color.web("#0b1410"))));
             getContentRoot().getChildren().add(bg);
         }
 
@@ -301,111 +305,14 @@ public class CustomMainMenu extends FXGLMenu {
         Text einstText = mkText("⚙  Einstellungen", W - 258, 43, Color.web("#d6dcf5"), 12, true);
         einstBtn.setCursor(javafx.scene.Cursor.HAND);
         einstText.setCursor(javafx.scene.Cursor.HAND);
-        einstBtn.setOnMouseClicked(e -> zeigeEinstellungen(true));
-        einstText.setOnMouseClicked(e -> zeigeEinstellungen(true));
+        einstBtn.setOnMouseClicked(e -> einstellungen.oeffnen());
+        einstText.setOnMouseClicked(e -> einstellungen.oeffnen());
         einstBtn.setOnMouseEntered(e -> einstBtn.setFill(Color.color(0.18, 0.21, 0.36, 0.95)));
         einstBtn.setOnMouseExited(e  -> einstBtn.setFill(Color.color(0.12, 0.14, 0.25, 0.9)));
         getContentRoot().getChildren().addAll(einstBtn, einstText);
 
-        einstellungen = baueEinstellungen(W, H);
-        einstellungen.setVisible(false);
+        einstellungen = new EinstellungenPanel(W, H, true, this::aktualisiereKarten, null);
         getContentRoot().getChildren().add(einstellungen);
-    }
-
-    // ──────────────────────────────────────────────────────────────
-    // EINSTELLUNGEN
-    // ──────────────────────────────────────────────────────────────
-
-    private Pane baueEinstellungen(int W, int H) {
-        Pane root = new Pane();
-        Rectangle dimmer = new Rectangle(W, H, Color.color(0, 0, 0, 0.65));
-        dimmer.setOnMouseClicked(e -> zeigeEinstellungen(false));   // Klick daneben schließt
-
-        double pw = 460, ph = 360;
-        double px = (W - pw) / 2, py = (H - ph) / 2;
-        Rectangle panel = new Rectangle(pw, ph, Color.color(0.07, 0.07, 0.12, 0.98));
-        panel.setArcWidth(16); panel.setArcHeight(16);
-        panel.setStroke(Color.web("#5d6d9e")); panel.setStrokeWidth(2);
-        panel.setTranslateX(px); panel.setTranslateY(py);
-        panel.setOnMouseClicked(e -> e.consume());
-
-        Text titel = mkText("⚙  EINSTELLUNGEN", px + 28, py + 42, Color.WHITE, 22, true);
-
-        sSound = new Rectangle(); tSound = new Text();
-        sMusik = new Rectangle(); tMusik = new Text();
-        sVollbild = new Rectangle(); tVollbild = new Text();
-        sAlleFrei = new Rectangle(); tAlleFrei = new Text();
-
-        root.getChildren().addAll(dimmer, panel, titel);
-        schalter(root, px, py + 80,  "🔊  Soundeffekte", null, sSound, tSound,
-                () -> Sounds.setSoundAn(!SaveData.soundAn));
-        schalter(root, px, py + 130, "🎵  Musik", null, sMusik, tMusik,
-                () -> Sounds.setMusikAn(!SaveData.musikAn));
-        schalter(root, px, py + 180, "🖥  Vollbild", null, sVollbild, tVollbild,
-                () -> FXGL.getPrimaryStage().setFullScreen(!FXGL.getPrimaryStage().isFullScreen()));
-        schalter(root, px, py + 230, "🔓  Alle Karten freischalten",
-                "Präsentationsmodus: alle Karten & Schwierigkeiten spielbar", sAlleFrei, tAlleFrei,
-                () -> {
-                    SaveData.alleMapsFrei = !SaveData.alleMapsFrei;
-                    SaveData.speichern();
-                    aktualisiereKarten();
-                });
-
-        Rectangle zu = new Rectangle(160, 40, Color.web("#27ae60"));
-        zu.setArcWidth(10); zu.setArcHeight(10);
-        zu.setTranslateX(px + (pw - 160) / 2); zu.setTranslateY(py + ph - 62);
-        Text zuText = mkText("Fertig", 0, 0, Color.WHITE, 15, true);
-        zuText.setTextOrigin(javafx.geometry.VPos.CENTER);
-        zuText.setTranslateX(px + pw / 2 - zuText.getLayoutBounds().getWidth() / 2);
-        zuText.setTranslateY(py + ph - 42);
-        zu.setCursor(javafx.scene.Cursor.HAND); zuText.setCursor(javafx.scene.Cursor.HAND);
-        zu.setOnMouseClicked(e -> zeigeEinstellungen(false));
-        zuText.setOnMouseClicked(e -> zeigeEinstellungen(false));
-        zu.setOnMouseEntered(e -> zu.setFill(Color.web("#2ecc71")));
-        zu.setOnMouseExited(e  -> zu.setFill(Color.web("#27ae60")));
-        root.getChildren().addAll(zu, zuText);
-        return root;
-    }
-
-    /** Eine Zeile mit Beschriftung (optional Untertitel) und AN/AUS-Schalter rechts. */
-    private void schalter(Pane root, double px, double y, String label, String hinweis,
-                          Rectangle btn, Text text, Runnable aktion) {
-        Text l = mkText(label, px + 32, y + (hinweis == null ? 18 : 12), Color.web("#e0e4f5"), 15, true);
-        root.getChildren().add(l);
-        if (hinweis != null) {
-            root.getChildren().add(mkText(hinweis, px + 32, y + 30, Color.web("#8a90b0"), 11, false));
-        }
-        btn.setWidth(64); btn.setHeight(28);
-        btn.setArcWidth(28); btn.setArcHeight(28);
-        btn.setTranslateX(px + 460 - 32 - 64); btn.setTranslateY(y);
-        text.setStyle("-fx-font-size: 12px; -fx-font-weight: bold;");
-        text.setTextOrigin(javafx.geometry.VPos.CENTER);
-        text.setTranslateY(y + 14);
-        btn.setCursor(javafx.scene.Cursor.HAND); text.setCursor(javafx.scene.Cursor.HAND);
-        Runnable klick = () -> { aktion.run(); Sounds.play("klick"); aktualisiereSchalter(); };
-        btn.setOnMouseClicked(e -> klick.run());
-        text.setOnMouseClicked(e -> klick.run());
-        root.getChildren().addAll(btn, text);
-    }
-
-    private void zeigeEinstellungen(boolean an) {
-        if (an) aktualisiereSchalter();
-        einstellungen.setVisible(an);
-        Sounds.play("klick");
-    }
-
-    private void aktualisiereSchalter() {
-        setzeSchalter(sSound, tSound, SaveData.soundAn);
-        setzeSchalter(sMusik, tMusik, SaveData.musikAn);
-        setzeSchalter(sVollbild, tVollbild, FXGL.getPrimaryStage().isFullScreen());
-        setzeSchalter(sAlleFrei, tAlleFrei, SaveData.alleMapsFrei);
-    }
-
-    private void setzeSchalter(Rectangle btn, Text text, boolean an) {
-        btn.setFill(an ? Color.web("#27ae60") : Color.web("#555566"));
-        text.setText(an ? "AN" : "AUS");
-        text.setFill(an ? Color.WHITE : Color.LIGHTGRAY);
-        text.setTranslateX(btn.getTranslateX() + 32 - text.getLayoutBounds().getWidth() / 2);
     }
 
     /** Sperr-Anzeige der Karten neu setzen (z.B. nach Präsentationsmodus an/aus). */
