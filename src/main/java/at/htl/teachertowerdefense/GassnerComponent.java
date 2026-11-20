@@ -5,8 +5,8 @@ import com.almasb.fxgl.entity.component.Component;
 
 public class GassnerComponent extends Component {
 
-    private static final int[] BETRAEGE = {25, 35, 50, 70, 100, 150};
-    private static final int[] AUSZAHLUNGEN_PRO_RUNDE = {2, 2, 2, 3, 3, 4};
+    static final int[] BETRAEGE = {25, 35, 50, 70, 100, 150};
+    static final int[] AUSZAHLUNGEN_PRO_RUNDE = {2, 2, 2, 3, 3, 4};
 
     private int generatedGeld = 0;
     private int payoutsThisRound = 0;

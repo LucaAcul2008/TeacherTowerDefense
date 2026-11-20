@@ -8,6 +8,9 @@ public class GameConfig {
     public static int selectedDiff = 0; // 0=Easy, 1=Medium, 2=Hard
     public static double speedMulti = 1.0;
 
+    /** Höchstens so viele Lehrer gleichzeitig auf der Karte – man soll upgraden statt spammen. */
+    public static final int MAX_LEHRER = 8;
+
     // Multiplikatoren pro Schwierigkeit
     public static double getStartgeldMulti() {
         return switch (selectedDiff) {

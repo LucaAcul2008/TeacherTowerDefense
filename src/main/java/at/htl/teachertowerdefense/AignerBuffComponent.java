@@ -12,7 +12,7 @@ import com.almasb.fxgl.entity.component.Component;
  */
 public class AignerBuffComponent extends Component {
 
-    private static final double[] SPEED_BONI = {0.0, 0.05, 0.10, 0.17, 0.24, 0.30};
+    static final double[] SPEED_BONI = {0.0, 0.05, 0.10, 0.17, 0.24, 0.30};
 
     /** Aura-Radius in Pixeln (wächst mit Pfad-A-Upgrades via LehrerComponent). */
     public double getBuffRadius() {

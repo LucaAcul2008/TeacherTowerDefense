@@ -271,8 +271,9 @@ public class LehrerComponent extends Component {
         return shootDelay;
     }
 
+    /** Spezial-Upgrades (Stufe 5) verdoppeln den Schaden. */
     public int getDamage() {
-        return damage;
+        return spezialProjektil ? damage * 2 : damage;
     }
 
     public int getMultiTarget() {
@@ -307,6 +308,90 @@ public class LehrerComponent extends Component {
             default: return nutztSkin ? "ProjektilGolfball" : "ProjektilBoomerang";
         }
     }
+    // ============================================================
+    // INFOS FÜRS UPGRADE-PANEL
+    // ============================================================
+
+    private List<LehrerUpgrade> pfad(char p) {
+        return p == 'A' ? pfadA : p == 'B' ? pfadB : pfadC;
+    }
+
+    public int getStufe(char p) {
+        return p == 'A' ? stufePfadA : p == 'B' ? stufePfadB : stufePfadC;
+    }
+
+    /** Nächstes Upgrade in diesem Pfad, oder null wenn ausgebaut. */
+    public LehrerUpgrade naechstesUpgrade(char p) {
+        int s = getStufe(p);
+        return s < pfad(p).size() ? pfad(p).get(s) : null;
+    }
+
+    /** Erlaubt die 5-2-0-Regel ein weiteres Upgrade in diesem Pfad (unabhängig von XP/Geld)? */
+    public boolean regelErlaubt(char p) {
+        int s = getStufe(p);
+        if (s >= 5) return false;
+        int idx = p - 'A';
+        int hp = hauptPfad();
+        if (hp != -1 && hp != idx && s >= 2) return false;
+        return !(s == 0 && pfadeMitUpgrades() >= 2);
+    }
+
+    /** Warum die 5-2-0-Regel diesen Pfad sperrt. */
+    public String sperrGrund(char p) {
+        return getStufe(p) == 0 ? "Nur 2 Pfade pro Lehrer möglich" : "Nur 1 Pfad darf über Stufe 2";
+    }
+
+    /** Was das nächste Upgrade bewirkt, z.B. "+25 Reichweite". */
+    public String effektText(char p) {
+        LehrerUpgrade u = naechstesUpgrade(p);
+        if (u == null) return "";
+        int s = getStufe(p);
+
+        if (lehrerTyp == 3) { // Aigner – Buffs
+            return switch (p) {
+                case 'A' -> String.format("+%.0f Aura-Radius", u.rangeDelta);
+                case 'B' -> "+" + u.damageDelta + " Schadens-Buff";
+                default  -> String.format(java.util.Locale.GERMAN, "Tempo-Buff +%.2f s",
+                        AignerBuffComponent.SPEED_BONI[s + 1] - AignerBuffComponent.SPEED_BONI[s]);
+            };
+        }
+        if (lehrerTyp == 4) { // Gassner – Geld
+            int[] ausz = GassnerComponent.AUSZAHLUNGEN_PRO_RUNDE;
+            int[] betr = GassnerComponent.BETRAEGE;
+            return switch (p) {
+                case 'A' -> {
+                    if (ausz[s + 1] > ausz[s]) yield ausz[s] + " → " + ausz[s + 1] + " Auszahlungen/Runde";
+                    int ab = s + 2;
+                    while (ab < ausz.length && ausz[ab] == ausz[s]) ab++;
+                    yield ab < ausz.length ? (ausz[s] + 1) + ". Auszahlung ab Stufe " + ab : "";
+                }
+                case 'B' -> "+" + (betr[s + 1] - betr[s]) + " € pro Auszahlung";
+                default  -> switch (s + 1) {
+                    case 1  -> "Synergie +10 % je Gassner";
+                    case 2  -> "Synergie +15 % je Gassner";
+                    case 3  -> "Synergie +20 % je Gassner";
+                    case 4  -> "+1 ❤ pro Auszahlung";
+                    default -> "+2 ❤ pro Auszahlung";
+                };
+            };
+        }
+
+        List<String> teile = new java.util.ArrayList<>();
+        boolean einzeln = (u.rangeDelta != 0 ? 1 : 0) + (u.shootDelayDelta != 0 ? 1 : 0)
+                + (u.damageDelta != 0 ? 1 : 0) + (u.multiTargetDelta != 0 ? 1 : 0) <= 1;
+        if (u.rangeDelta != 0)
+            teile.add(String.format("+%.0f %s", u.rangeDelta, einzeln ? "Reichweite" : "Reichw."));
+        if (u.shootDelayDelta != 0)
+            teile.add(String.format(java.util.Locale.GERMAN, "−%.2f s%s", -u.shootDelayDelta, einzeln ? " Nachladezeit" : ""));
+        if (u.damageDelta != 0)
+            teile.add("+" + u.damageDelta + " Schaden");
+        if (u.multiTargetDelta != 0)
+            teile.add("+" + u.multiTargetDelta + (u.multiTargetDelta == 1 ? " Ziel" : " Ziele"));
+        if (u.spezialProjektil)
+            teile.add("SPEZIAL: doppelter Schaden");
+        return String.join(" · ", teile);
+    }
+
     public void addPops(int damage) {
         pops += damage;
     }

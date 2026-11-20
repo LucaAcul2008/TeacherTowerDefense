@@ -344,9 +344,11 @@ public class TeacherTowerDefenseFactory implements EntityFactory {
     @Spawns("RangeIndicator")
     public Entity newRangeIndicator(SpawnData data) {
         double range = data.get("range");
-        Circle c = new Circle(range, Color.color(1, 1, 0, 0.15));
-        c.setStroke(Color.color(1, 1, 0, 0.6));
+        boolean vorschau = data.hasKey("vorschau"); // Upgrade-Vorschau: grün gestrichelt
+        Circle c = new Circle(range, vorschau ? Color.color(0.2, 1, 0.4, 0.08) : Color.color(1, 1, 0, 0.15));
+        c.setStroke(vorschau ? Color.color(0.3, 1, 0.5, 0.95) : Color.color(1, 1, 0, 0.6));
         c.setStrokeWidth(2);
+        if (vorschau) c.getStrokeDashArray().addAll(10.0, 7.0);
         // FIX: Circle center auf (0,0) → Entity-Position ist der Mittelpunkt
         c.setCenterX(0);
         c.setCenterY(0);

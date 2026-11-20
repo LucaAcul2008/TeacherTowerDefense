@@ -13,6 +13,9 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
     - Feichtner – wirft Alchemie-Potions (Explosionsschaden)
     - Winkler – schießt Floppy Disks (schnelle Feuerrate, viele Ziele)
 - **5-2-0 Upgrade-Pfade** pro Lehrer (Pfad A, B, C mit je 5 Stufen)
+    - Upgrade-Panel zeigt pro Stufe Preis und Wirkung (z.B. „+25 Reichweite“), Reichweiten-Upgrades mit Vorschau-Kreis
+    - Stufe 5 („Spezial“) verdoppelt den Schaden
+- **Lehrer-Limit:** maximal 8 Lehrer gleichzeitig – lieber upgraden statt spammen (Gassner zählt nicht dazu)
 - **10 Runden** mit 7 verschiedenen Schülertypen (von Erstklässler bis Schulleiter)
 - **3 Karten** (HTL Saalfelden, City, Schulausflug) mit eigenen Wegstrecken
     - Schulausflug wird freigeschaltet, sobald City auf Easy geschafft ist
@@ -31,8 +34,8 @@ Verhindere, dass Schüler das Schulgelände verlassen! Platziere Lehrer strategi
 | Aktion | Eingabe |
 |---|---|
 | Lehrer platzieren | Lehrer im Shop anklicken → auf Karte klicken |
-| Lehrer verkaufen | Platzierten Lehrer anklicken → Verkaufen-Button |
-| Lehrer upgraden | Platzierten Lehrer anklicken → Upgrade-Panel |
+| Lehrer verkaufen | Platzierten Lehrer anklicken → Verkaufen-Button oder **Entf** |
+| Lehrer upgraden | Platzierten Lehrer anklicken → Upgrade-Panel oder Tasten **1 / 2 / 3** |
 | Lehrer abwählen | Rechtsklick |
 | Runde starten | Start-Button oder **Leertaste** (oder Auto-Start aktivieren) |
 | Spielgeschwindigkeit | 1x / 2x Button oder **F** |
