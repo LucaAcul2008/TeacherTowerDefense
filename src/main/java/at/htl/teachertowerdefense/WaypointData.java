@@ -79,27 +79,30 @@ public class WaypointData {
 
     public static final List<Point2D> ROUTE = ROUTE_MAP1;
 
-    public static int naechsterWaypointIndex(double x, double y) {
+    /**
+     * Index i des Wegabschnitts (route[i] → route[i+1]), dem pos am nächsten liegt.
+     * Gesucht wird erst ab dem Abschnitt, auf dem der Schüler gestartet ist (nie rückwärts).
+     *
+     * Wichtig: Abschnitte statt Eckpunkte! Die alte Suche nach dem nächsten Eckpunkt
+     * hat Ecken übersprungen – Kinder-Schüler sind dann quer über die Karte gelaufen.
+     */
+    public static int naechsterAbschnitt(Point2D pos, int abWaypoint) {
         List<Point2D> route = getROUTE();
-        double minDist = Double.MAX_VALUE;
-        int index = 0;
-        for (int i = 0; i < route.size(); i++) {
-            double dist = route.get(i).distance(x, y);
-            if (dist < minDist) { minDist = dist; index = i; }
+        int bester = Math.max(0, Math.min(abWaypoint - 1, route.size() - 2));
+        double besteDist = Double.MAX_VALUE;
+        for (int i = Math.max(0, abWaypoint - 1); i < route.size() - 1; i++) {
+            double d = abstandZuAbschnitt(pos, route.get(i), route.get(i + 1));
+            if (d < besteDist) { besteDist = d; bester = i; }
         }
-        return Math.min(index + 1, route.size() - 1);
+        return bester;
     }
 
-    /** Sucht ab Index {@code ab} vorwärts bis zum Ende der Route. */
-    public static int naechsterWaypointIndexAb(double x, double y, int ab) {
-        List<Point2D> route = getROUTE();
-        double minDist = Double.MAX_VALUE;
-        int index = ab;
-        for (int i = ab; i < route.size(); i++) {
-            double dist = route.get(i).distance(x, y);
-            if (dist < minDist) { minDist = dist; index = i; }
-        }
-        return Math.min(index + 1, route.size() - 1);
+    private static double abstandZuAbschnitt(Point2D p, Point2D a, Point2D b) {
+        Point2D ab = b.subtract(a);
+        double len2 = ab.dotProduct(ab);
+        if (len2 == 0) return p.distance(a);
+        double t = Math.max(0, Math.min(1, p.subtract(a).dotProduct(ab) / len2));
+        return a.add(ab.multiply(t)).distance(p);
     }
 
     /**

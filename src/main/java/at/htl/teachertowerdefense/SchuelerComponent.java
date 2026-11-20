@@ -116,19 +116,26 @@ public class SchuelerComponent extends Component {
         }
         // Gespeichert wird am Rundenende / Spielende – nicht bei jedem Kill (zu teuer)
 
-        final double x           = entity.getX() + typ.groesse / 2.0;
-        final double y           = entity.getY() + typ.groesse / 2.0;
-        // Nur vorwärts suchen ab dem Waypoint wo dieser Schüler gestartet ist
-        final int naechsterIndex = WaypointData.naechsterWaypointIndexAb(x, y, startWaypoint);
+        // Kinder spawnen genau dort, wo der Schüler gestorben ist, und laufen zum Ende
+        // des Wegabschnitts, auf dem er gerade war (nicht zum "nächsten Eckpunkt" – das hat Ecken übersprungen).
+        final javafx.geometry.Point2D pos = entity.getPosition();
+        final int abschnitt      = WaypointData.naechsterAbschnitt(pos, startWaypoint);
+        final int naechsterIndex = abschnitt + 1;
+        final javafx.geometry.Point2D abschnittStart = WaypointData.getROUTE().get(abschnitt);
         final int overkill       = overkillDamage;
 
         FXGL.getGameTimer().runOnceAfter(() -> {
             if (!entity.isActive()) return;
 
             if (typ.kindTyp != null) {
+                // Mehrere Kinder leicht hintereinander (Richtung Abschnitt-Anfang), nicht alle auf einem Punkt
+                javafx.geometry.Point2D zurueck = abschnittStart.subtract(pos);
+                double platz = zurueck.magnitude();
+                javafx.geometry.Point2D richtung = platz > 0 ? zurueck.normalize() : javafx.geometry.Point2D.ZERO;
                 for (int i = 0; i < typ.kindAnzahl; i++) {
+                    javafx.geometry.Point2D p = pos.add(richtung.multiply(Math.min(i * 14.0, platz)));
                     var kindEntity = FXGL.spawn("Schueler",
-                            new com.almasb.fxgl.entity.SpawnData(x, y)
+                            new com.almasb.fxgl.entity.SpawnData(p.getX(), p.getY())
                                     .put("typ", typ.kindTyp)
                                     .put("startWaypoint", naechsterIndex)
                     );
